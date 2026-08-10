@@ -1,70 +1,70 @@
-# 📊 Lab Status — What's Done & What's Missing
+# 📊 Lab Status — Single Source of Truth
 
-> Last updated: 2026-08-11  
-> Use this file as your single source of truth. Update it every time you make a change.
+> Last updated: 2026-08-11
+> Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
 
 ## ✅ Verified & Done
 
 ### Infrastructure
-- [x] **pfSense** (172.16.0.1) — Firewall up, LAN rules configured, FLARE-VM outbound blocked
+- [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked
 - [x] **ELK Stack** (172.16.0.4) — Elasticsearch + Kibana running, TLS enabled
-- [x] **Domain Controller** (172.16.0.5) — AD `soc.lab` healthy, DNS working
-- [x] **Kali Linux** (172.16.0.11) — Network OK, Impacket + Nmap + Responder installed
-- [x] **Windows 10 Victim** (172.16.0.10) — Network OK
-- [x] **Ubuntu Victim** (172.16.0.20) — Network OK, Filebeat running
-- [x] **FLARE-VM** (172.16.0.30) — Network OK (reaches DC + ELK directly), pfSense outbound block in place
+- [x] **DC / AD** (172.16.0.5) — domain `soc.lab` healthy, DNS working
+- [x] **Kali** (172.16.0.11) — network OK, Impacket + Nmap + Responder installed
+- [x] **Ubuntu Victim** (172.16.0.20) — network OK, Filebeat running
+- [x] **FLARE-VM** (172.16.0.30) — network OK, isolated by design, no telemetry
 
-### Telemetry / Log Shipping
-- [x] **DC → ELK** — Sysmon (SwiftOnSecurity v4.90) + Winlogbeat installed and running
-- [x] **Ubuntu Victim → ELK** — Filebeat running
-- [ ] **Win10 Victim → ELK** — Winlogbeat status not yet verified ⚠️
-- [ ] **Kali → ELK** — No log shipping (intentional? confirm)
-- [x] **FLARE-VM** — No telemetry by design (isolated malware analysis)
-
-### Security Tools (Kali)
-- [x] Impacket (`impacket-GetNPUsers`)
-- [x] Nmap
-- [x] Responder
-- [ ] BloodHound — **NOT installed** ❌
-- [ ] CrackMapExec — not verified
-- [ ] Metasploit — not verified
+### Telemetry
+- [x] DC → ELK: Sysmon (sysmon-modular v4.90, Olaf Hartong) + Winlogbeat running
+- [x] Ubuntu → ELK: Filebeat running
+- [x] FLARE-VM: No telemetry — intentional (malware analysis VM)
 
 ---
 
 ## ❌ Missing / TODO
 
-### High Priority
-- [ ] **BloodHound on Kali** — install with `sudo apt install bloodhound -y`
-- [ ] **Win10 Victim** — verify Sysmon + Winlogbeat installed and shipping to ELK
-- [ ] **ELK Dashboards** — confirm Kibana dashboards exist for Windows + Linux events
-- [ ] **ELK Index verification** — confirm `winlogbeat-*` and `filebeat-*` indices receiving data
-- [ ] **Filebeat config on Ubuntu** — `output.elasticsearch` is commented out; verify correct output (Logstash? or direct ES?)
+### 🔴 High Priority
+- [ ] **Win10 Victim** (172.16.0.10) — Sysmon + Winlogbeat NOT verified
+- [ ] **BloodHound on Kali** — not installed (`sudo apt install bloodhound -y`)
+- [ ] **Filebeat output on Ubuntu** — `output.elasticsearch` commented out; destination unknown
+- [ ] **ELK indices** — `winlogbeat-*` and `filebeat-*` not confirmed receiving data
 
-### Medium Priority
-- [ ] **pfSense firewall rules** — document all current rules in `infrastructure/pfsense.md`
-- [ ] **Logstash pipeline** — save current pipeline config to `configs/elk/logstash-pipeline.conf`
-- [ ] **AD users/OUs** — document AD structure (users, groups, OUs) in `infrastructure/dc.md`
-- [ ] **GPO configuration** — document GPOs applied in AD
-- [ ] **Kibana alerting rules** — document any detection rules in Kibana
+### 🟡 Medium Priority
+- [ ] **pfSense rules** — full ruleset not documented
+- [ ] **Logstash pipeline** — current config not saved to repo
+- [ ] **AD structure** — users, OUs, groups not documented
+- [ ] **Kibana dashboards** — not confirmed or documented
+- [ ] **CrackMapExec on Kali** — not verified
+- [ ] **Metasploit on Kali** — not verified
 
-### Low Priority / Nice to Have
-- [ ] **Network diagram** (visual) — add to `infrastructure/network-diagram.md`
-- [ ] **FLARE-VM tool inventory** — list installed tools (Ghidra, x64dbg, etc.) in `infrastructure/flare-vm.md`
-- [ ] **Attack scenario scripts** — add to `scenarios/`
-- [ ] **IR playbook templates** — expand `playbooks/` with full detection + response steps
-- [ ] **Snort/Suricata on pfSense** — IDS/IPS not yet configured
-- [ ] **Velociraptor or Wazuh** — consider adding for host-based detection
+### 🟢 Low Priority
+- [ ] **FLARE-VM tool inventory** — list installed tools in `infrastructure/flare-vm.md`
+- [ ] **Suricata on pfSense** — IDS/IPS not deployed
+- [ ] **Network diagram** (visual PNG) — add to `assets/diagrams/`
+- [ ] **VLAN segmentation** — flat network; planned for v2.1
 
 ---
 
-## 🔍 Needs Investigation
+## ⚠️ Needs Investigation
 
 | Item | Question | Action |
 |------|----------|--------|
-| Ubuntu Filebeat | `output.elasticsearch` is commented out — where are logs going? | Check `/etc/filebeat/filebeat.yml` full output section |
-| Win10 Victim | Sysmon + Winlogbeat status unknown | Run verification commands (see `infrastructure/win10-victim.md`) |
-| Kali tools | CrackMapExec, Metasploit not verified | Run `which crackmapexec` and `which msfconsole` |
-| ELK indices | No confirmation that data is flowing into ES | Run `curl -k -u elastic:PASS https://172.16.0.4:9200/_cat/indices?v` |
-| pfSense rules | Full ruleset not documented | Export rules from pfSense UI |
+| Ubuntu Filebeat | Where are logs going? | `sudo filebeat test output` on 172.16.0.20 |
+| Win10 Victim | Sysmon + Winlogbeat installed? | See `infrastructure/win10-victim.md` |
+| ELK indices | Is data flowing? | `curl -k -u elastic:PASS https://172.16.0.4:9200/_cat/indices?v` |
+| Kali tools | CME + Metasploit present? | `which crackmapexec msfconsole` on 172.16.0.11 |
+
+---
+
+## 🎯 Incident Progress
+
+| ID | Name | Status |
+|----|------|--------|
+| INC-001 | LLMNR Poisoning + NTLM Relay | 🔲 TODO |
+| INC-002 | AS-REP Roasting | 🔲 TODO |
+| INC-003 | Kerberoasting | 🔲 TODO |
+| INC-004 | Pass-the-Hash Lateral Movement | 🔲 TODO |
+| INC-005 | DCSync Attack | 🔲 TODO |
+| INC-006 | Malware Detonation + C2 Beacon | 🔲 TODO |
+| INC-007 | Phishing → Macro → PowerShell | 🔲 TODO |
