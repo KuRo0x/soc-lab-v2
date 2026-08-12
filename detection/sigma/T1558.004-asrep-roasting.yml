@@ -1,0 +1,48 @@
+title: AS-REP Roasting — Kerberos TGT Request with RC4 Encryption
+id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+status: test
+description: |
+  Detects AS-REP Roasting attempts by identifying Kerberos TGT requests (Event ID 4768)
+  using RC4-HMAC encryption (type 0x17) with pre-authentication absent (type 0).
+  Legitimate modern Kerberos uses AES (0x11/0x12). RC4 requests from non-DC hosts
+  are highly anomalous in hardened environments.
+references:
+  - https://attack.mitre.org/techniques/T1558/004/
+  - https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/as-rep-roasting-using-rubeus-and-hashcat
+author: KuRo
+date: 2026-08-12
+tags:
+  - attack.credential_access
+  - attack.t1558.004
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4768
+    TicketEncryptionType: '0x17'
+    PreAuthType: '0'
+  filter_dc_self:
+    IpAddress|startswith:
+      - '::ffff:172.16.0.5'   # SOC-Lab-DC
+      - '::1'                  # localhost
+      - '-'                    # blank/local (legitimate DC self-requests)
+  condition: selection and not filter_dc_self
+falsepositives:
+  - Legacy applications explicitly configured to use RC4 for Kerberos compatibility
+  - Older Windows clients (pre-Vista) defaulting to RC4
+  - Misconfigured service accounts legitimately requesting RC4
+level: high
+fields:
+  - EventID
+  - TargetUserName
+  - TargetDomainName
+  - IpAddress
+  - IpPort
+  - TicketEncryptionType
+  - PreAuthType
+  - Status
+enrichment:
+  - Check if TargetUserName has DoesNotRequirePreAuth=true in AD
+  - Correlate IpAddress with asset inventory — unknown IPs are high priority
+  - Follow up with 4769 events from same source (potential Kerberoasting chain)

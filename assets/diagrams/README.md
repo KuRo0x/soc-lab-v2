@@ -1,10 +1,13 @@
 # Diagrams
 
-Network topology, attack flow, and kill chain diagrams.
+Network topology diagrams, attack chain visualizations, and architecture drawings.
 
-## TODO
-- [ ] Network diagram (draw.io or Excalidraw) — export PNG + SVG
-- [ ] Attack flow diagram per incident
-- [ ] Kill chain overview
+## Files
 
-Place exported diagram files here.
+| File | Description |
+|------|-------------|
+| *(add diagrams here)* | Export as PNG. Name format: `network-topology.png`, `INC-002-attack-chain.png` |
+
+## Network Topology (Text)
+
+See: [`infrastructure/network-topology.md`](../../infrastructure/network-diagram.md)

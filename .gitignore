@@ -1,0 +1,64 @@
+# ============================================================
+# soc-lab-v2 .gitignore — credential & artifact hygiene
+# ============================================================
+
+# Credentials & secrets — NEVER commit these
+*.env
+*.env.*
+secrets.yml
+secrets.yaml
+creds.txt
+passwords.txt
+lab-creds.*
+
+# Hashcat artifacts
+*.pot
+*.potfile
+hashcat.potfile
+
+# Wordlists — too large and contain sensitive data
+wordlists/
+*.txt.gz
+rockyou.txt
+
+# Wireshark / packet captures
+*.pcap
+*.pcapng
+*.cap
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Evidence files (screenshots go in assets/screenshots/, not root)
+*.png
+*.jpg
+*.jpeg
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.jpeg
+!README*.png
