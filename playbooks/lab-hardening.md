@@ -2,7 +2,7 @@
 
 > This document covers hardening recommendations for every component in the soc-lab-v2 stack.
 > Organized by layer: network → endpoints → identity → telemetry → attacker opsec.
-> Each section maps to the attack scenarios in `scenarios/` so you understand *why* each control matters.
+> Each section maps to the attack scenarios in `threat-scenarios/` so you understand *why* each control matters.
 
 ---
 
@@ -64,7 +64,7 @@ GPO Path: Computer Config → Admin Templates → Network → Lanman Workstation
 - [ ] Disable NetBIOS over TCP/IP on all NICs
 - [ ] Disable WPAD (Web Proxy Auto-Discovery)
 
-### INC-002 — AS-REP Roasting Prevention
+### INC-002 — AS-REP Roasting Prevention ✅ Applied 2026-08-12
 ```powershell
 # Audit all accounts with PreAuth disabled
 Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} `
@@ -73,11 +73,14 @@ Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} `
 # Re-enable PreAuth on any found accounts
 Set-ADAccountControl -Identity <username> -DoesNotRequirePreAuth $false
 ```
-- [ ] Enforce Kerberos pre-authentication on ALL accounts — no exceptions
+- [x] **Pre-auth re-enabled on `svc_asrep`** — verified: `GetNPUsers` returns no hashes ✅
+- [x] **Attack confirmed blocked** — Impacket returns nothing after hardening ✅
 - [ ] Disable RC4-HMAC via GPO: `Network security: Configure encryption types allowed for Kerberos` → AES128/AES256 only
 - [ ] Migrate service accounts to **Group Managed Service Accounts (gMSA)** — auto-rotating 120-char passwords
 - [ ] Add all privileged service accounts to **Protected Users** security group
 - [ ] Schedule quarterly audit of PreAuth settings via scheduled task or script
+
+> ⚠️ To re-run INC-002 demo: `Set-ADAccountControl -Identity svc_asrep -DoesNotRequirePreAuth $true` then revert after.
 
 ### INC-003 — Kerberoasting Prevention
 - [ ] Use gMSA for all service accounts — passwords are 120 chars, practically uncrackable
@@ -160,7 +163,7 @@ Add-MpPreference -AttackSurfaceReductionRules_Ids `
 ## 5. 📊 ELK Stack (172.16.0.4)
 
 - [ ] **Change default elastic password** — if still using default, rotate immediately
-- [ ] Enable TLS on all Elasticsearch/Kibana interfaces (already done ✅)
+- [x] Enable TLS on all Elasticsearch/Kibana interfaces ✅
 - [ ] Restrict Kibana to management VLAN only — not accessible from Kali VLAN
 - [ ] Enable **Elasticsearch security features** — role-based access control
 - [ ] Create a **read-only SOC analyst role** in Kibana — don't use elastic superuser for daily work
@@ -198,9 +201,9 @@ Add-MpPreference -AttackSurfaceReductionRules_Ids `
 
 ## 8. 📡 Telemetry Hardening (Winlogbeat / Filebeat / Sysmon)
 
-- [ ] Confirm `winlogbeat-*` index is receiving data — verify after every DC reboot
-- [ ] Winlogbeat config path: `C:\winlogbeat\winlogbeat.yml` — not the default path, document for all team members
-- [ ] Ensure Winlogbeat ships **Security**, **Sysmon**, **PowerShell**, and **System** channels
+- [x] `winlogbeat-*` index confirmed receiving live data ✅
+- [x] Winlogbeat 8.17.0 shipping Security, Sysmon, PowerShell channels ✅
+- [x] Winlogbeat config at `C:\winlogbeat\winlogbeat.yml` ✅
 - [ ] Set Winlogbeat to auto-start on boot: `Set-Service winlogbeat -StartupType Automatic`
 - [ ] Fix Ubuntu Filebeat output (`output.elasticsearch` currently commented out)
 - [ ] Verify `filebeat-*` index exists and receives data
@@ -224,17 +227,19 @@ Add-MpPreference -AttackSurfaceReductionRules_Ids `
 
 ## Hardening Progress Tracker
 
-| Component | Hardened | Notes |
-|-----------|----------|-------|
+| Component | Status | Notes |
+|-----------|--------|-------|
 | pfSense firewall rules | 🟡 Partial | Basic rules in place, not fully documented |
 | VLAN segmentation | ❌ Planned | Scheduled for v2.1 |
-| AD — PreAuth enforcement | ❌ Lab intentional | svc_asrep left vulnerable for INC-002 |
-| AD — RC4 disabled | ❌ Lab intentional | Required for INC-002/003 demos |
+| AD — PreAuth enforcement (INC-002) | ✅ Done | `svc_asrep` hardened 2026-08-12 — attack confirmed blocked |
+| AD — RC4 disabled | ❌ Lab intentional | Required for INC-003 demo |
 | AD — gMSA for services | ❌ TODO | |
 | Windows endpoints — LSA Protection | ❌ TODO | |
 | Windows endpoints — Credential Guard | ❌ TODO | |
+| ELK — TLS enabled | ✅ Done | |
 | ELK — RBAC enabled | ❌ TODO | |
 | ELK — ILM configured | ❌ TODO | |
+| Winlogbeat — live data confirmed | ✅ Done | `winlogbeat-2026.08.12` index verified |
 | Ubuntu — Filebeat output fixed | ❌ TODO | |
 | Suricata on pfSense | ❌ TODO | |
 | Kali — command logging | ❌ TODO | |
