@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: 2026-08-12
+> Last updated: 2026-08-16
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -19,7 +19,8 @@
 - [x] DC → ELK: Winlogbeat 8.17.0 running at `C:\winlogbeat\` — ships Security, Sysmon, PowerShell channels
 - [x] Sysmon: sysmon-modular v4.90 (Olaf Hartong config) installed on DC
 - [x] Confirmed index: `winlogbeat-2026.08.12` — live data verified in Kibana
-- [x] Ubuntu → ELK: Filebeat running
+- [x] Ubuntu → ELK: Filebeat confirmed shipping to **Logstash at 172.16.0.4:5044** — `sudo filebeat test output` passed (parse host ✅, DNS ✅, dial ✅, talk to server ✅)
+  - ⚠️ Note: TLS disabled on Filebeat → Logstash transport (plain text, acceptable for isolated lab)
 - [x] FLARE-VM: No telemetry — intentional
 
 ### Kerberos Audit Policy (DC)
@@ -31,7 +32,6 @@
 
 ### 🔴 High Priority
 - [ ] **Win10 Victim** (172.16.0.10) — Sysmon + Winlogbeat NOT verified
-- [ ] **Filebeat output on Ubuntu** — `output.elasticsearch` commented out; destination unknown
 - [ ] **BloodHound on Kali** — not installed
 
 ### 🟡 Medium Priority
@@ -53,7 +53,6 @@
 
 | Item | Question | Action |
 |------|----------|--------|
-| Ubuntu Filebeat | Where are logs going? | `sudo filebeat test output` on 172.16.0.20 |
 | Win10 Victim | Sysmon + Winlogbeat installed? | Verify on 172.16.0.10 |
 | Kali tools | CME + Metasploit present? | `which crackmapexec msfconsole` on 172.16.0.11 |
 
