@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: 2026-08-16
+> Last updated: **2026-08-20**
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -9,19 +9,33 @@
 
 ### Infrastructure
 - [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked
+  - ⚠️ Admin password still set to default `pfsense` — **change this**
 - [x] **ELK Stack** (172.16.0.4) — Elasticsearch + Kibana running, TLS enabled
 - [x] **DC / AD** (172.16.0.5) — domain `soc.lab` healthy, DNS working, hostname `SOC-Lab-DC`
 - [x] **Kali** (172.16.0.11) — network OK, Impacket installed and working
-- [x] **Ubuntu Victim** (172.16.0.20) — network OK, Filebeat running
+- [x] **Win10 Victim** (172.16.0.10) — Sysmon + Winlogbeat **verified running** (session 2026-08-20)
+- [x] **Ubuntu Victim** (172.16.0.20) — network OK, Filebeat **verified** (session 2026-08-20)
 - [x] **FLARE-VM** (172.16.0.30) — network OK, isolated by design, no telemetry
 
 ### Telemetry
-- [x] DC → ELK: Winlogbeat 8.17.0 running at `C:\winlogbeat\` — ships Security, Sysmon, PowerShell channels
-- [x] Sysmon: sysmon-modular v4.90 (Olaf Hartong config) installed on DC
-- [x] Confirmed index: `winlogbeat-2026.08.12` — live data verified in Kibana
-- [x] Ubuntu → ELK: Filebeat confirmed shipping to **Logstash at 172.16.0.4:5044** — `sudo filebeat test output` passed (parse host ✅, DNS ✅, dial ✅, talk to server ✅)
-  - ⚠️ Note: TLS disabled on Filebeat → Logstash transport (plain text, acceptable for isolated lab)
-- [x] FLARE-VM: No telemetry — intentional
+- [x] **DC → ELK:** Winlogbeat 8.17.0 running at `C:\winlogbeat\` — ships Security, Sysmon, PowerShell channels
+- [x] **Sysmon (DC):** sysmon-modular v4.90 (Olaf Hartong config) installed
+- [x] **Sysmon (Win10):** sysmon-modular v4.90 config verified — `C:\Windows\sysmonconfig.xml` confirmed
+- [x] **Win10 → ELK:** Winlogbeat running at `C:\Program Files\Winlogbeat\` — confirmed shipping
+- [x] **Confirmed index:** `winlogbeat-2026.08.12` — live data verified in Kibana
+- [x] **Ubuntu → ELK:** Filebeat 8.19.17 → Logstash `172.16.0.4:5044`
+  - `sudo filebeat test config -e` → **Config OK**
+  - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
+  - ⚠️ TLS disabled on Filebeat → Logstash (plain text — acceptable for isolated lab)
+- [x] **FLARE-VM:** No telemetry — intentional
+
+### Configs Pushed to Repo (session 2026-08-20)
+- [x] `configs/sysmon/sysmonconfig.xml` — sysmon-modular v4.90, MITRE-tagged
+- [x] `configs/winlogbeat/dc-winlogbeat.yml` — DC config
+- [x] `configs/winlogbeat/win10-winlogbeat.yml` — Win10 config, verified & synced
+- [x] `configs/filebeat/filebeat.yml` — Ubuntu victim, Logstash output, v8.19.17 verified
+- [x] `configs/network/pfsense-rules.md` — live rules from UI + production hardening section
+- [x] `configs/detection-rules/README.md` — placeholder for Kibana rule exports
 
 ### Kerberos Audit Policy (DC)
 - [x] `Kerberos Authentication Service` — `Success and Failure` confirmed via `auditpol`
@@ -31,21 +45,28 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **Win10 Victim** (172.16.0.10) — Sysmon + Winlogbeat NOT verified
-- [ ] **BloodHound on Kali** — not installed
+- [ ] **BloodHound on Kali** — not installed (needed for INC-003, INC-004)
+  ```bash
+  sudo apt install bloodhound -y && neo4j start && bloodhound &
+  ```
+- [ ] **INC-003 Kerberoasting** — next incident (see below for steps)
 
 ### 🟡 Medium Priority
-- [ ] **pfSense rules** — full ruleset not documented in repo
-- [ ] **Logstash pipeline config** — not saved to repo
-- [ ] **AD structure** — users, OUs, groups not fully documented
-- [ ] **Kibana dashboards** — not exported to repo
-- [ ] **CrackMapExec / Metasploit on Kali** — not verified
+- [ ] **Logstash pipeline config** — not saved to repo (`/etc/logstash/conf.d/` on ELK)
+- [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
+- [ ] **Kibana detection rules** — not exported to `detection/kibana/`
+- [ ] **AD structure** — users, OUs, groups not documented in `docs/`
+- [ ] **CrackMapExec / Metasploit on Kali** — not verified (`which crackmapexec msfconsole`)
+- [ ] **pfSense password** — still default `pfsense` — change via System > User Manager
+- [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
+- [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
 - [ ] **Suricata on pfSense** — IDS not deployed
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
+- [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
 
 ---
 
@@ -53,8 +74,8 @@
 
 | Item | Question | Action |
 |------|----------|--------|
-| Win10 Victim | Sysmon + Winlogbeat installed? | Verify on 172.16.0.10 |
 | Kali tools | CME + Metasploit present? | `which crackmapexec msfconsole` on 172.16.0.11 |
+| Win10 Winlogbeat index | Is Win10 data landing in its own index? | Check Kibana index management |
 
 ---
 
@@ -62,13 +83,25 @@
 
 | ID | Name | MITRE | Status |
 |----|------|-------|--------|
-| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | 🔲 Not started |
+| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | ✅ Complete |
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete |
-| INC-003 | Kerberoasting | T1558.003 | 🔲 Not started |
+| INC-003 | Kerberoasting | T1558.003 | 🔲 **Next up** |
 | INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | 🔲 Not started |
 | INC-005 | DCSync Attack | T1003.006 | 🔲 Not started |
 | INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Not started |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
+
+---
+
+## ✅ INC-001 — LLMNR Poisoning + NTLM Relay (Complete)
+
+| Check | What Was Done | Result |
+|-------|--------------|--------|
+| Responder setup | Responder running on Kali, LLMNR/NBT-NS listeners active | ✅ |
+| NTLM hash captured | NTLMv2 hash from Win10 victim captured | ✅ |
+| Hash cracked | Hashcat cracked NTLMv2 hash | ✅ |
+| ELK detection | Event 4648 / Sysmon EID 3 confirmed in Kibana | ✅ |
+| Writeup | `incidents/INC-001-llmnr-poisoning/` | ✅ |
 
 ---
 
@@ -83,7 +116,29 @@
 | Attack executed | `impacket-GetNPUsers` — hash captured | ✅ |
 | Hash cracked | Hashcat `-m 18200` — `Status: Cracked` | ✅ |
 | ELK detection | Event 4768 + `TicketEncryptionType: 0x17` confirmed in Kibana | ✅ |
-| Sigma rule | `detection/sigma/T1558.004-asrep-roasting.yml` — written and pushed | ✅ |
+| Sigma rule | `detection/sigma/T1558.004-asrep-roasting.yml` — pushed | ✅ |
 | Writeup | `threat-scenarios/INC-002-asrep-roasting/README.md` | ✅ |
 
-**Next:** INC-003 — Kerberoasting
+---
+
+## 🔲 INC-003 — Kerberoasting (Next)
+
+**Pre-requisites before starting:**
+- [ ] Install BloodHound on Kali
+- [ ] Create a service account with SPN on DC:
+  ```powershell
+  New-ADUser -Name "svc_http" -AccountPassword (ConvertTo-SecureString "Password123!" -AsPlainText -Force) -Enabled $true
+  Set-ADUser svc_http -ServicePrincipalNames @{Add="HTTP/soc-lab-dc.soc.lab"}
+  ```
+
+**Attack steps (from Kali):**
+```bash
+impacket-GetUserSPNs soc.lab/svc_asrep:Password123! -dc-ip 172.16.0.5 -request
+hashcat -m 13100 kerberoast.hash /usr/share/wordlists/rockyou.txt
+```
+
+**Detection:** EID `4769` with `TicketEncryptionType: 0x17` in Kibana
+
+**Deliverables:**
+- `incidents/INC-003-kerberoasting/` writeup
+- `detection/sigma/T1558.003-kerberoasting.yml`
