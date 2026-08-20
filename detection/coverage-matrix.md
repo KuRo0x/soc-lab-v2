@@ -1,7 +1,7 @@
 # ATT&CK Detection Coverage Matrix
 
-> Last updated: 2026-08-12
-> Lab: soc-lab-v2 | Domain: soc.lab
+> Last updated: 2026-08-20  
+> Lab: soc-lab-v2 | Domain: soc.lab  
 > Only lists scenarios that have been **executed and verified** in the lab.
 
 ---
@@ -11,6 +11,7 @@
 | INC | MITRE ID | Technique | Tactic | Sigma Rule | ELK Verified | Status |
 |-----|----------|-----------|--------|------------|--------------|--------|
 | INC-002 | T1558.004 | AS-REP Roasting | Credential Access | ✅ [`T1558.004-asrep-roasting.yml`](./sigma/T1558.004-asrep-roasting.yml) | ✅ Event 4768 confirmed | ✅ Complete |
+| INC-003 | T1558.003 | Kerberoasting | Credential Access | ✅ [`T1558.003-kerberoasting.yml`](./sigma/T1558.003-kerberoasting.yml) | ✅ Event 4769 confirmed | ✅ Complete |
 
 ---
 
@@ -19,7 +20,6 @@
 | INC | MITRE ID | Technique | Tactic |
 |-----|----------|-----------|--------|
 | INC-001 | T1557.001 | LLMNR/NBT-NS Poisoning | Credential Access |
-| INC-003 | T1558.003 | Kerberoasting | Credential Access |
 | INC-004 | T1550.002 | Pass-the-Hash | Lateral Movement |
 | INC-005 | T1003.006 | DCSync | Credential Access |
 | INC-006 | T1071.001 | C2 over HTTP/S | Command & Control |
@@ -45,6 +45,7 @@
 
 | Event ID | Description | Confirmed In Lab |
 |----------|-------------|------------------|
-| 4768 | Kerberos TGT Request | ✅ INC-002 |
+| 4768 | Kerberos TGT Request (AS-REQ/AS-REP) | ✅ INC-002 |
+| 4769 | Kerberos TGS Request (TGS-REP) | ✅ INC-003 |
 
 > Additional event IDs will be confirmed and added as each scenario runs.

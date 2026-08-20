@@ -1,0 +1,50 @@
+title: Kerberoasting — RC4 TGS-REP Request (T1558.003)
+id: a8f2c3d1-4b7e-4f9a-b6c2-1d3e5f7a9b0c
+status: stable
+description: |
+  Detects a successful Kerberos service ticket request (TGS-REP) using RC4 encryption
+  (TicketEncryptionType 0x17), which is the primary indicator of a Kerberoasting attack.
+  Attackers request TGS tickets for accounts with Service Principal Names (SPNs) and
+  crack them offline. RC4 tickets are crackable because the encryption key is derived
+  directly from the service account's NTLM hash.
+references:
+  - https://attack.mitre.org/techniques/T1558/003/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+  - https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/t1208-kerberoasting
+author: KuRo
+date: 2026-08-20
+modified: 2026-08-20
+tags:
+  - attack.credential_access
+  - attack.t1558.003
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4769
+    TicketEncryptionType: '0x17'
+    Status: '0x0'
+  filter_machine_accounts:
+    ServiceName|endswith: '$'
+  filter_krbtgt:
+    ServiceName: 'krbtgt'
+  condition: selection and not filter_machine_accounts and not filter_krbtgt
+falsepositives:
+  - Legacy applications or services that require RC4 encryption and cannot be upgraded to AES.
+  - Scheduled tasks or services configured to authenticate with older encryption types.
+  - Investigate the requesting account and source IP to distinguish legitimate from malicious activity.
+level: high
+fields:
+  - EventID
+  - TargetUserName
+  - ServiceName
+  - ServiceSid
+  - TicketEncryptionType
+  - IpAddress
+  - IpPort
+  - Status
+enrichment:
+  - Correlate TargetUserName against known service accounts with SPNs.
+  - Correlate IpAddress against known attacker hosts or anomalous endpoints.
+  - Alert on volume — multiple 4769/0x17 events in a short window indicates SPN enumeration.

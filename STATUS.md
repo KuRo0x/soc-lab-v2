@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-20**
+> Last updated: **2026-08-20**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -39,17 +39,14 @@
 
 ### Kerberos Audit Policy (DC)
 - [x] `Kerberos Authentication Service` — `Success and Failure` confirmed via `auditpol`
+- [x] `Kerberos Service Ticket Operations` — `Success and Failure` confirmed (required for EID 4769)
 
 ---
 
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **BloodHound on Kali** — not installed (needed for INC-003, INC-004)
-  ```bash
-  sudo apt install bloodhound -y && neo4j start && bloodhound &
-  ```
-- [ ] **INC-003 Kerberoasting** — next incident (see below for steps)
+- [ ] **INC-004 Pass-the-Hash** — next incident
 
 ### 🟡 Medium Priority
 - [ ] **Logstash pipeline config** — not saved to repo (`/etc/logstash/conf.d/` on ELK)
@@ -85,8 +82,8 @@
 |----|------|-------|--------|
 | INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | ✅ Complete |
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete |
-| INC-003 | Kerberoasting | T1558.003 | 🔲 **Next up** |
-| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | 🔲 Not started |
+| INC-003 | Kerberoasting | T1558.003 | ✅ **Complete** |
+| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | 🔲 **Next up** |
 | INC-005 | DCSync Attack | T1003.006 | 🔲 Not started |
 | INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Not started |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
@@ -121,24 +118,33 @@
 
 ---
 
-## 🔲 INC-003 — Kerberoasting (Next)
+## ✅ INC-003 — Kerberoasting (Complete)
 
-**Pre-requisites before starting:**
-- [ ] Install BloodHound on Kali
-- [ ] Create a service account with SPN on DC:
-  ```powershell
-  New-ADUser -Name "svc_http" -AccountPassword (ConvertTo-SecureString "Password123!" -AsPlainText -Force) -Enabled $true
-  Set-ADUser svc_http -ServicePrincipalNames @{Add="HTTP/soc-lab-dc.soc.lab"}
-  ```
+| Check | What Was Done | Result |
+|-------|--------------|--------|
+| Service account | `svc_http` created with SPN `HTTP/soc-lab-dc.soc.lab` | ✅ |
+| TGS requested | `impacket-GetUserSPNs` — `$krb5tgs$23$*` hash captured | ✅ |
+| Hash cracked | Hashcat `-m 13100` — 1/1 cracked | ✅ |
+| ELK detection | Event 4769 + `TicketEncryptionType: 0x17` confirmed in Kibana | ✅ |
+| Detection index | `winlogbeat-2026.08.20` — record `52849` | ✅ |
+| Sigma rule | `detection/sigma/T1558.003-kerberoasting.yml` — pushed | ✅ |
+| Writeup | `incidents/INC-003-kerberoasting/README.md` | ✅ |
+
+---
+
+## 🔲 INC-004 — Pass-the-Hash (Next)
+
+**Pre-requisites:**
+- [ ] Verify CrackMapExec is installed on Kali: `which crackmapexec`
+- [ ] Confirm a cracked NTLM hash is available from INC-001 or INC-002
 
 **Attack steps (from Kali):**
 ```bash
-impacket-GetUserSPNs soc.lab/svc_asrep:Password123! -dc-ip 172.16.0.5 -request
-hashcat -m 13100 kerberoast.hash /usr/share/wordlists/rockyou.txt
+crackmapexec smb 172.16.0.10 -u Administrator -H <NTLM_HASH>
 ```
 
-**Detection:** EID `4769` with `TicketEncryptionType: 0x17` in Kibana
+**Detection:** EID `4624` with `LogonType: 3` and `AuthenticationPackageName: NTLM` in Kibana
 
 **Deliverables:**
-- `incidents/INC-003-kerberoasting/` writeup
-- `detection/sigma/T1558.003-kerberoasting.yml`
+- `incidents/INC-004-pass-the-hash/` writeup
+- `detection/sigma/T1550.002-pass-the-hash.yml`
