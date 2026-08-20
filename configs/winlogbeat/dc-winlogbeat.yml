@@ -1,0 +1,74 @@
+###################### Winlogbeat Configuration — soc-lab-v2 (DC) ########################
+# Source: Pulled directly from DC (172.16.0.5)
+# Install path: C:\Program Files\Winlogbeat\winlogbeat.yml
+# Output: Logstash on 172.16.0.4:5044
+# Version: confirmed running
+# NOTE: Kibana host not yet configured — uncomment setup.kibana.host when ready
+
+# ======================== Winlogbeat specific options =========================
+
+winlogbeat.event_logs:
+  - name: Application
+    ignore_older: 72h
+
+  - name: System
+
+  - name: Security
+
+  - name: Microsoft-Windows-Sysmon/Operational
+
+  - name: Windows PowerShell
+    event_id: 400, 403, 600, 800
+
+  - name: Microsoft-Windows-PowerShell/Operational
+    event_id: 4103, 4104, 4105, 4106
+
+  - name: ForwardedEvents
+    tags: [forwarded]
+
+# ====================== Elasticsearch template settings =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  #index.codec: best_compression
+  #_source.enabled: false
+
+# =================================== Kibana ===================================
+
+setup.kibana:
+  # TODO: Uncomment and set when Kibana is reachable from DC
+  #host: "172.16.0.4:5601"
+
+# ================================== Outputs ===================================
+
+# ---------------------------- Elasticsearch Output ----------------------------
+# NOTE: Currently routing via Logstash — uncomment to switch to direct ES output
+#output.elasticsearch:
+  #hosts: ["172.16.0.4:9200"]
+  #protocol: "http"
+  #username: "elastic"
+  #password: "${ELASTIC_PASSWORD}"
+  #pipeline: "winlogbeat-%{[agent.version]}-routing"
+
+# ------------------------------ Logstash Output -------------------------------
+output.logstash:
+  hosts: ["172.16.0.4:5044"]
+
+  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+  #ssl.certificate: "/etc/pki/client/cert.pem"
+  #ssl.key: "/etc/pki/client/cert.key"
+
+# ================================= Processors =================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+
+# ================================== Logging ===================================
+#logging.level: debug
+#logging.selectors: ["*"]
+
+# ============================= X-Pack Monitoring ==============================
+#monitoring.enabled: false
+#monitoring.cluster_uuid:
+#monitoring.elasticsearch:
