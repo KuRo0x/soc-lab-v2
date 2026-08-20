@@ -1,0 +1,38 @@
+title: Kerberoasting — RC4 TGS Request (T1558.003)
+id: b7c3e2a1-4f8d-4b2e-9c1a-d5e6f7a8b9c0
+status: experimental
+description: |
+  Detects Kerberoasting attacks via a Kerberos Service Ticket (TGS) request
+  using RC4 encryption (EncryptionType 0x17). Modern AD environments use AES;
+  RC4 TGS requests from non-legacy clients are a strong indicator of Kerberoasting.
+references:
+  - https://attack.mitre.org/techniques/T1558/003/
+  - https://www.harmj0y.net/blog/powershell/kerberoasting-without-mimikatz/
+author: soc-lab-v2
+date: 2026-08-20
+tags:
+  - attack.credential_access
+  - attack.t1558.003
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4769
+    TicketEncryptionType: '0x17'
+  filter_krbtgt:
+    ServiceName: 'krbtgt'
+  filter_machine_accounts:
+    ServiceName|endswith: '$'
+  condition: selection and not filter_krbtgt and not filter_machine_accounts
+falsepositives:
+  - Legacy systems (Windows XP / Server 2003) that only support RC4
+  - Misconfigured service accounts with RC4 forced via msDS-SupportedEncryptionTypes
+level: high
+fields:
+  - EventID
+  - SubjectUserName
+  - ServiceName
+  - ClientAddress
+  - TicketEncryptionType
+  - TicketOptions
