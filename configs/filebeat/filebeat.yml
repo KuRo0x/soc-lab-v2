@@ -1,8 +1,24 @@
 # ============================================================
 # Filebeat Configuration — soc-lab-v2
-# Applied to: Ubuntu Victim (172.16.0.20)
-# Output: Elasticsearch on 172.16.0.4:9200
-# TODO: Run `sudo filebeat test output` to verify pipeline
+# Host:     Ubuntu Victim (172.16.0.20)
+# Hostname: soc-lab-victim
+# OS:       Ubuntu 26.04 LTS (Resolute Raccoon)
+# Version:  filebeat 8.19.17
+# Output:   Logstash on 172.16.0.4:5044
+# Status:   ✅ Config OK + output verified 2026-08-20
+#
+# Verified with:
+#   sudo filebeat test config -e   -> Config OK
+#   sudo filebeat test output -e   -> logstash: 172.16.0.4:5044
+#                                      parse host OK | dns OK | dial OK | talk to server OK
+#                                      TLS: WARN secure connection disabled (expected in lab)
+#
+# Paths:
+#   config:  /etc/filebeat
+#   data:    /var/lib/filebeat
+#   home:    /usr/share/filebeat
+#   logs:    /var/log/filebeat
+#   binary:  /usr/share/filebeat/bin/filebeat
 # ============================================================
 
 filebeat.inputs:
@@ -30,7 +46,7 @@ filebeat.inputs:
       log_type: syslog
       host_role: ubuntu-victim
 
-  # Apache / Nginx access logs (if running a web service in lab)
+  # Apache / Nginx access logs (disabled — enable when running web service)
   - type: log
     enabled: false
     paths:
@@ -65,19 +81,24 @@ processors:
   - add_docker_metadata: ~
 
 # ============================================================
-# Output — Elasticsearch
-# ⚠️ Password injected via environment variable
-# Run: sudo ELASTIC_PASSWORD=<pass> filebeat -e
+# Output — Logstash
+# ✅ Verified shipping to Logstash pipeline on ELK stack
+# TLS disabled — acceptable for isolated 172.16.0.0/24 lab
 # ============================================================
-output.elasticsearch:
-  hosts: ["172.16.0.4:9200"]
-  username: "elastic"
-  password: "${ELASTIC_PASSWORD}"
-  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+output.logstash:
+  hosts: ["172.16.0.4:5044"]
 
-# Uncomment to send through Logstash instead:
-# output.logstash:
-#   hosts: ["172.16.0.4:5044"]
+  # Enable when TLS is configured on Logstash:
+  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+  #ssl.certificate: "/etc/pki/client/cert.pem"
+  #ssl.key: "/etc/pki/client/cert.key"
+
+# Elasticsearch direct output (disabled — using Logstash pipeline instead)
+# output.elasticsearch:
+#   hosts: ["172.16.0.4:9200"]
+#   username: "elastic"
+#   password: "${ELASTIC_PASSWORD}"
+#   index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
 
 # ============================================================
 # Kibana
