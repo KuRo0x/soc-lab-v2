@@ -1,0 +1,77 @@
+# ============================================================
+# Winlogbeat Configuration — soc-lab-v2
+# Applied to: DC (172.16.0.5), Win10 Victim (172.16.0.10)
+# Output: Elasticsearch on 172.16.0.4:9200
+# ============================================================
+
+winlogbeat.event_logs:
+
+  # System, Application, Security
+  - name: Application
+    ignore_older: 72h
+
+  - name: System
+    ignore_older: 72h
+
+  - name: Security
+    ignore_older: 72h
+
+  # PowerShell logging (T1059.001)
+  - name: Microsoft-Windows-PowerShell/Operational
+    ignore_older: 72h
+
+  # Sysmon channel — critical for process/network/file events
+  - name: Microsoft-Windows-Sysmon/Operational
+    ignore_older: 72h
+
+  # WMI activity (T1047)
+  - name: Microsoft-Windows-WMI-Activity/Operational
+    ignore_older: 72h
+
+  # RDP Logon activity (T1021.001)
+  - name: Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+    ignore_older: 72h
+
+  # Task Scheduler (T1053.005)
+  - name: Microsoft-Windows-TaskScheduler/Operational
+    ignore_older: 72h
+
+  # Kerberos / pre-auth events (EID 4768, 4771 — ASREPRoasting)
+  - name: Security
+    event_id: 4624, 4625, 4648, 4662, 4663, 4720, 4726, 4768, 4769, 4771, 4776
+
+# ============================================================
+# Processors
+# ============================================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+
+# ============================================================
+# Output — Elasticsearch
+# ============================================================
+output.elasticsearch:
+  hosts: ["172.16.0.4:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  # Use ILM — winlogbeat-* index pattern
+  index: "winlogbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+# setup.kibana:
+#   host: "172.16.0.4:5601"
+
+setup.ilm.enabled: true
+setup.template.settings:
+  index.number_of_shards: 1
+
+# ============================================================
+# Logging
+# ============================================================
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:\ProgramData\winlogbeat\Logs
+  name: winlogbeat
+  keepfiles: 7
+  permissions: 0640

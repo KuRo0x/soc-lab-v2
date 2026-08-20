@@ -1,0 +1,139 @@
+<!--
+  Sysmon Config — soc-lab-v2
+  Based on: sysmon-modular v4.90 by Olaf Hartong
+  Verbosity: Balanced / Medium
+  Applied to: DC (172.16.0.5), Win10 Victim (172.16.0.10)
+  Source: https://github.com/olafhartong/sysmon-modular
+
+  MITRE tags are embedded in rule names (e.g. technique_id=T1059)
+  Install: sysmon64.exe -accepteula -i sysmonconfig.xml
+  Update:  sysmon64.exe -c sysmonconfig.xml
+-->
+
+<Sysmon schemaversion="4.90">
+
+  <HashAlgorithms>md5,sha256,IMPHASH</HashAlgorithms>
+  <CheckRevocation/>
+
+  <EventFiltering>
+
+    <!-- ======================================================
+         Event ID 1 — Process Creation
+         Captures new process spawns with parent info
+         Relevant: T1059 (Scripting), T1055 (Process Injection)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="exclude">
+        <!-- Exclude known noisy system processes -->
+        <Rule name="exclude_system_idle" groupRelation="and">
+          <Image condition="is">System</Image>
+        </Rule>
+        <Rule name="exclude_trustedinstaller" groupRelation="and">
+          <Image condition="end with">TrustedInstaller.exe</Image>
+        </Rule>
+      </ProcessCreate>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 3 — Network Connection
+         Relevant: T1071 (C2), T1021 (Lateral Movement)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="include">
+        <!-- Alert on outbound connections from suspicious processes -->
+        <Rule name="technique_id=T1071,technique_name=Application_Layer_Protocol" groupRelation="or">
+          <Image condition="end with">powershell.exe</Image>
+          <Image condition="end with">cmd.exe</Image>
+          <Image condition="end with">wscript.exe</Image>
+          <Image condition="end with">cscript.exe</Image>
+          <Image condition="end with">mshta.exe</Image>
+          <Image condition="end with">certutil.exe</Image>
+          <Image condition="end with">bitsadmin.exe</Image>
+        </Rule>
+        <!-- LLMNR / mDNS (UDP 5355, 5353) — T1557.001 -->
+        <Rule name="technique_id=T1557.001,technique_name=LLMNR_NBT-NS_Poisoning" groupRelation="or">
+          <DestinationPort condition="is">5355</DestinationPort>
+          <DestinationPort condition="is">5353</DestinationPort>
+        </Rule>
+      </NetworkConnect>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 7 — Image Loaded (DLL load)
+         Relevant: T1055 (Process Injection), T1574 (DLL Hijack)
+         Note: Very noisy — keep targeted
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <ImageLoad onmatch="include">
+        <Rule name="technique_id=T1055,technique_name=Process_Injection" groupRelation="or">
+          <Signed condition="is">false</Signed>
+        </Rule>
+      </ImageLoad>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 8 — CreateRemoteThread
+         Relevant: T1055 (Process Injection)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <CreateRemoteThread onmatch="include">
+        <Rule name="technique_id=T1055,technique_name=Process_Injection" groupRelation="or">
+          <TargetImage condition="end with">lsass.exe</TargetImage>
+          <TargetImage condition="end with">svchost.exe</TargetImage>
+          <TargetImage condition="end with">explorer.exe</TargetImage>
+        </Rule>
+      </CreateRemoteThread>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 10 — Process Access (e.g. lsass dump)
+         Relevant: T1003.001 (LSASS Memory — Mimikatz)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessAccess onmatch="include">
+        <Rule name="technique_id=T1003.001,technique_name=LSASS_Memory" groupRelation="and">
+          <TargetImage condition="end with">lsass.exe</TargetImage>
+          <GrantedAccess condition="is">0x1FFFFF</GrantedAccess>
+        </Rule>
+        <Rule name="technique_id=T1003.001,technique_name=LSASS_Memory_ReadVM" groupRelation="and">
+          <TargetImage condition="end with">lsass.exe</TargetImage>
+          <GrantedAccess condition="is">0x1010</GrantedAccess>
+        </Rule>
+      </ProcessAccess>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 11 — FileCreate
+         Relevant: T1105 (Ingress Tool Transfer), T1547 (Startup)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <FileCreate onmatch="include">
+        <Rule name="technique_id=T1547.001,technique_name=Registry_Run_Keys" groupRelation="or">
+          <TargetFilename condition="contains">\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\</TargetFilename>
+        </Rule>
+        <Rule name="technique_id=T1105,technique_name=Ingress_Tool_Transfer" groupRelation="or">
+          <TargetFilename condition="end with">.exe</TargetFilename>
+          <TargetFilename condition="end with">.dll</TargetFilename>
+          <TargetFilename condition="end with">.ps1</TargetFilename>
+          <TargetFilename condition="end with">.bat</TargetFilename>
+          <TargetFilename condition="end with">.vbs</TargetFilename>
+        </Rule>
+      </FileCreate>
+    </RuleGroup>
+
+    <!-- ======================================================
+         Event ID 13 — Registry Value Set
+         Relevant: T1547 (Boot/Logon Autostart), T1112 (Modify Registry)
+    ====================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <RegistryEvent onmatch="include">
+        <Rule name="technique_id=T1547.001,technique_name=Registry_Run_Keys" groupRelation="or">
+          <TargetObject condition="contains">\CurrentVersion\Run</TargetObject>
+          <TargetObject condition="contains">\CurrentVersion\RunOnce</TargetObject>
+        </Rule>
+      </RegistryEvent>
+    </RuleGroup>
+
+  </EventFiltering>
+
+</Sysmon>

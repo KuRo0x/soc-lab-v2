@@ -1,0 +1,101 @@
+# ============================================================
+# Filebeat Configuration — soc-lab-v2
+# Applied to: Ubuntu Victim (172.16.0.20)
+# Output: Elasticsearch on 172.16.0.4:9200
+# TODO: Run `sudo filebeat test output` to verify pipeline
+# ============================================================
+
+filebeat.inputs:
+
+  # System auth logs (brute force, SSH login events)
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/auth.log
+      - /var/log/secure
+    fields:
+      log_type: auth
+      host_role: ubuntu-victim
+    multiline.pattern: '^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+    multiline.negate: true
+    multiline.match: after
+
+  # Syslog — general system events
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+    fields:
+      log_type: syslog
+      host_role: ubuntu-victim
+
+  # Apache / Nginx access logs (if running a web service in lab)
+  - type: log
+    enabled: false
+    paths:
+      - /var/log/apache2/access.log
+      - /var/log/nginx/access.log
+    fields:
+      log_type: webserver
+
+  # Auditd logs (file access, syscall auditing)
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/audit/audit.log
+    fields:
+      log_type: auditd
+      host_role: ubuntu-victim
+
+# ============================================================
+# Modules
+# ============================================================
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# ============================================================
+# Processors
+# ============================================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+# ============================================================
+# Output — Elasticsearch
+# ⚠️ Password injected via environment variable
+# Run: sudo ELASTIC_PASSWORD=<pass> filebeat -e
+# ============================================================
+output.elasticsearch:
+  hosts: ["172.16.0.4:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+# Uncomment to send through Logstash instead:
+# output.logstash:
+#   hosts: ["172.16.0.4:5044"]
+
+# ============================================================
+# Kibana
+# ============================================================
+setup.kibana:
+  host: "172.16.0.4:5601"
+
+setup.ilm.enabled: true
+setup.template.settings:
+  index.number_of_shards: 1
+
+# ============================================================
+# Logging
+# ============================================================
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0640
