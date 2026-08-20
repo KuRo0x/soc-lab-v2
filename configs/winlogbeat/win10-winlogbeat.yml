@@ -1,10 +1,22 @@
 ###################### Winlogbeat Configuration — soc-lab-v2 (Win10 Victim) ########################
-# Source: Pulled directly from Win10 Victim (172.16.0.10)
-# Install path: C:\Users\SOC-Lab-Endpoint\Downloads\winlogbeat-9.4.2-windows-x86_64\winlogbeat-9.4.2-windows-x86_64\winlogbeat.yml
-# Version: winlogbeat 9.4.2
-# Output: Logstash on 172.16.0.4:5044
-# ⚠️ TODO: Move install from Downloads to C:\Program Files\Winlogbeat\ and re-register service
-# NOTE: Kibana host not yet configured — uncomment setup.kibana.host when ready
+# Host:         Win10 Victim (172.16.0.10)
+# Install path: C:\Program Files\Winlogbeat\winlogbeat.yml
+# Binary:       C:\Program Files\Winlogbeat\winlogbeat.exe
+# Data:         C:\Program Files\Winlogbeat-Data\Winlogbeat
+# Logs:         C:\Program Files\Winlogbeat-Data\Winlogbeat\logs
+# Version:      winlogbeat 9.4.2
+# Output:       Logstash on 172.16.0.4:5044
+# Status:       ✅ Service running — verified 2026-08-20
+# NOTE:         Kibana host not yet configured — uncomment setup.kibana.host when ready
+
+# Service binary path (confirmed via Get-WmiObject Win32_Service):
+# "C:\Program Files\Winlogbeat\winlogbeat.exe" --environment=windows_service
+#   -c "C:\Program Files\Winlogbeat\winlogbeat.yml"
+#   --path.home "C:\Program Files\Winlogbeat"
+#   --path.data "C:\Program Files\Winlogbeat-Data\Winlogbeat"
+#   --path.logs "C:\Program Files\Winlogbeat-Data\Winlogbeat\logs"
+#   -E keystore.path="C:\Program Files\Winlogbeat\data\Winlogbeat.keystore"
+#   -E logging.files.redirect_stderr=true
 
 # ======================== Winlogbeat specific options =========================
 
