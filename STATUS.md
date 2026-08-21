@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-20**  
+> Last updated: **2026-08-21**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -9,7 +9,7 @@
 
 ### Infrastructure
 - [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked
-  - ⚠️ Admin password still set to default `pfsense` — **change this**
+  - ⚠️ Admin password still set to default `pfsense` — **change this before making repo public**
 - [x] **ELK Stack** (172.16.0.4) — Elasticsearch + Kibana running, TLS enabled
 - [x] **DC / AD** (172.16.0.5) — domain `soc.lab` healthy, DNS working, hostname `SOC-Lab-DC`
 - [x] **Kali** (172.16.0.11) — network OK, Impacket installed and working
@@ -22,7 +22,7 @@
 - [x] **Sysmon (DC):** sysmon-modular v4.90 (Olaf Hartong config) installed
 - [x] **Sysmon (Win10):** sysmon-modular v4.90 config verified — `C:\Windows\sysmonconfig.xml` confirmed
 - [x] **Win10 → ELK:** Winlogbeat running at `C:\Program Files\Winlogbeat\` — confirmed shipping
-- [x] **Confirmed index:** `winlogbeat-2026.08.12` — live data verified in Kibana
+- [x] **Confirmed index:** `winlogbeat-2026.08.12` and `winlogbeat-2026.08.20` — live data verified in Kibana
 - [x] **Ubuntu → ELK:** Filebeat 8.19.17 → Logstash `172.16.0.4:5044`
   - `sudo filebeat test config -e` → **Config OK**
   - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
@@ -47,16 +47,17 @@
 
 ### 🔴 High Priority
 - [ ] **INC-004 Pass-the-Hash** — next incident
+- [ ] **pfSense password** — still default `pfsense` — change via System > User Manager
 
 ### 🟡 Medium Priority
 - [ ] **Logstash pipeline config** — not saved to repo (`/etc/logstash/conf.d/` on ELK)
-- [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **Kibana detection rules** — not exported to `detection/kibana/`
+- [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **AD structure** — users, OUs, groups not documented in `docs/`
 - [ ] **CrackMapExec / Metasploit on Kali** — not verified (`which crackmapexec msfconsole`)
-- [ ] **pfSense password** — still default `pfsense` — change via System > User Manager
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
+- [ ] **INC-003 evidence** — add `detection.md`, `timeline.md`, and screenshots to `incidents/INC-003-kerberoasting/`
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
@@ -64,6 +65,7 @@
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
+- [ ] **scripts/ subfolders** — currently all empty scaffolding; populate or remove
 
 ---
 
@@ -80,25 +82,12 @@
 
 | ID | Name | MITRE | Status |
 |----|------|-------|--------|
-| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | ✅ Complete |
-| INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete |
-| INC-003 | Kerberoasting | T1558.003 | ✅ **Complete** |
+| INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete (2026-08-12) |
+| INC-003 | Kerberoasting | T1558.003 | ✅ Complete (2026-08-20) |
 | INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | 🔲 **Next up** |
 | INC-005 | DCSync Attack | T1003.006 | 🔲 Not started |
 | INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Not started |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
-
----
-
-## ✅ INC-001 — LLMNR Poisoning + NTLM Relay (Complete)
-
-| Check | What Was Done | Result |
-|-------|--------------|--------|
-| Responder setup | Responder running on Kali, LLMNR/NBT-NS listeners active | ✅ |
-| NTLM hash captured | NTLMv2 hash from Win10 victim captured | ✅ |
-| Hash cracked | Hashcat cracked NTLMv2 hash | ✅ |
-| ELK detection | Event 4648 / Sysmon EID 3 confirmed in Kibana | ✅ |
-| Writeup | `incidents/INC-001-llmnr-poisoning/` | ✅ |
 
 ---
 
@@ -114,7 +103,7 @@
 | Hash cracked | Hashcat `-m 18200` — `Status: Cracked` | ✅ |
 | ELK detection | Event 4768 + `TicketEncryptionType: 0x17` confirmed in Kibana | ✅ |
 | Sigma rule | `detection/sigma/T1558.004-asrep-roasting.yml` — pushed | ✅ |
-| Writeup | `threat-scenarios/INC-002-asrep-roasting/README.md` | ✅ |
+| Writeup | `incidents/INC-002-asrep-roasting/README.md` | ✅ |
 
 ---
 
@@ -129,6 +118,7 @@
 | Detection index | `winlogbeat-2026.08.20` — record `52849` | ✅ |
 | Sigma rule | `detection/sigma/T1558.003-kerberoasting.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-003-kerberoasting/README.md` | ✅ |
+| Missing | `detection.md`, `timeline.md`, `evidence/` — TODO | ⚠️ |
 
 ---
 
@@ -136,7 +126,7 @@
 
 **Pre-requisites:**
 - [ ] Verify CrackMapExec is installed on Kali: `which crackmapexec`
-- [ ] Confirm a cracked NTLM hash is available from INC-001 or INC-002
+- [ ] Confirm a cracked NTLM hash is available from INC-002
 
 **Attack steps (from Kali):**
 ```bash
