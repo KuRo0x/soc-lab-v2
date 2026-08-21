@@ -8,8 +8,7 @@
 ## ✅ Verified & Done
 
 ### Infrastructure
-- [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked
-  - ⚠️ Admin password still set to default `pfsense` — **change this before making repo public**
+- [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked, admin password changed ✅
 - [x] **ELK Stack** (172.16.0.4) — Elasticsearch + Kibana running, TLS enabled
 - [x] **DC / AD** (172.16.0.5) — domain `soc.lab` healthy, DNS working, hostname `SOC-Lab-DC`
 - [x] **Kali** (172.16.0.11) — network OK, Impacket installed and working
@@ -41,13 +40,16 @@
 - [x] `Kerberos Authentication Service` — `Success and Failure` confirmed via `auditpol`
 - [x] `Kerberos Service Ticket Operations` — `Success and Failure` confirmed (required for EID 4769)
 
+### Playbooks
+- [x] `IR-001` through `IR-004` — brute force, lateral movement, credential dumping, malware execution
+- [x] `IR-005-kerberos-attacks.md` — AS-REP Roasting + Kerberoasting (added 2026-08-21)
+
 ---
 
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
 - [ ] **INC-004 Pass-the-Hash** — next incident
-- [ ] **pfSense password** — still default `pfsense` — change via System > User Manager
 
 ### 🟡 Medium Priority
 - [ ] **Logstash pipeline config** — not saved to repo (`/etc/logstash/conf.d/` on ELK)
@@ -57,7 +59,6 @@
 - [ ] **CrackMapExec / Metasploit on Kali** — not verified (`which crackmapexec msfconsole`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
-- [ ] **INC-003 evidence** — add `detection.md`, `timeline.md`, and screenshots to `incidents/INC-003-kerberoasting/`
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
@@ -65,7 +66,7 @@
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
-- [ ] **scripts/ subfolders** — currently all empty scaffolding; populate or remove
+- [ ] **INC-003 evidence screenshots** — add to `incidents/INC-003-kerberoasting/evidence/`
 
 ---
 
@@ -104,6 +105,7 @@
 | ELK detection | Event 4768 + `TicketEncryptionType: 0x17` confirmed in Kibana | ✅ |
 | Sigma rule | `detection/sigma/T1558.004-asrep-roasting.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-002-asrep-roasting/README.md` | ✅ |
+| Evidence | 4 screenshots in `incidents/INC-002-asrep-roasting/evidence/` | ✅ |
 
 ---
 
@@ -118,7 +120,10 @@
 | Detection index | `winlogbeat-2026.08.20` — record `52849` | ✅ |
 | Sigma rule | `detection/sigma/T1558.003-kerberoasting.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-003-kerberoasting/README.md` | ✅ |
-| Missing | `detection.md`, `timeline.md`, `evidence/` — TODO | ⚠️ |
+| detection.md | `incidents/INC-003-kerberoasting/detection.md` | ✅ |
+| timeline.md | `incidents/INC-003-kerberoasting/timeline.md` | ✅ |
+| remediation.md | `incidents/INC-003-kerberoasting/remediation.md` | ✅ |
+| Evidence screenshots | `incidents/INC-003-kerberoasting/evidence/` | ⚠️ Folder exists, screenshots pending |
 
 ---
 
