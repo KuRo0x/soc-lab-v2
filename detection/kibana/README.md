@@ -1,27 +1,29 @@
-# Kibana Saved Searches & Alerts
+# Kibana Detection Rules
 
-This directory stores exported Kibana saved searches, dashboards, and alert configurations.
+This folder will hold exported Kibana detection/alert rules as `.ndjson` files.
 
-## Export Instructions
+> ⚠️ **TODO:** Export verified rules from Kibana and commit them here.
 
-1. In Kibana → Stack Management → Saved Objects
-2. Select the objects you want to export
-3. Click Export → include related objects
-4. Save the `.ndjson` file here
+## How to Export
 
-## Import Instructions
+1. Open Kibana → **Stack Management** → **Security** → **Rules**
+2. Select the rules you want to export
+3. Click **Bulk actions** → **Export**
+4. Save the `.ndjson` file to this folder
+5. Commit with message: `feat: export kibana rule <rule-name>`
+
+## How to Import (on a new/rebuilt ELK)
 
 ```bash
-# Via Kibana API
-curl -X POST "https://172.16.0.4:5601/api/saved_objects/_import" \
+curl -X POST "https://localhost:5601/api/detection_engine/rules/_import" \
   -H "kbn-xsrf: true" \
-  --form file=@detection/kibana/your-export.ndjson
+  -u elastic:<password> \
+  --form file=@./rule-name.ndjson
 ```
 
-## Available Exports
+## Rules Pending Export
 
-| File | Contents | Scenario |
-|------|----------|----------|
-| *(none yet)* | — | — |
-
-> Add Kibana exports here as scenarios are completed.
+| Rule | MITRE | Verified In Lab | Exported |
+|------|-------|-----------------|----------|
+| AS-REP Roasting — EID 4768 + EncType 0x17 + PreAuth 0 | T1558.004 | ✅ 2026-08-12 | 🔲 TODO |
+| Kerberoasting — EID 4769 + EncType 0x17 | T1558.003 | ✅ 2026-08-20 | 🔲 TODO |
