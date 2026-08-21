@@ -54,7 +54,7 @@ tmp/
 temp/
 *.tmp
 
-# Evidence files (screenshots go in assets/screenshots/, not root)
+# Evidence files — blocked by default, allowed in designated evidence folders
 *.png
 *.jpg
 *.jpeg
@@ -62,3 +62,10 @@ temp/
 !assets/**/*.jpg
 !assets/**/*.jpeg
 !README*.png
+# Allow screenshots inside incident and threat-scenario evidence folders
+!incidents/**/evidence/*.png
+!incidents/**/evidence/*.jpg
+!incidents/**/evidence/*.jpeg
+!threat-scenarios/**/evidence/*.png
+!threat-scenarios/**/evidence/*.jpg
+!threat-scenarios/**/evidence/*.jpeg
