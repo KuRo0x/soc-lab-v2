@@ -1,6 +1,6 @@
 # ATT&CK Detection Coverage Matrix
 
-> Last updated: 2026-08-20  
+> Last updated: 2026-08-21  
 > Lab: soc-lab-v2 | Domain: soc.lab  
 > Only lists scenarios that have been **executed and verified** in the lab.
 
@@ -8,10 +8,10 @@
 
 ## ✅ Active Coverage
 
-| INC | MITRE ID | Technique | Tactic | Sigma Rule | ELK Verified | Status |
-|-----|----------|-----------|--------|------------|--------------|--------|
-| INC-002 | T1558.004 | AS-REP Roasting | Credential Access | ✅ [`T1558.004-asrep-roasting.yml`](./sigma/T1558.004-asrep-roasting.yml) | ✅ Event 4768 confirmed | ✅ Complete |
-| INC-003 | T1558.003 | Kerberoasting | Credential Access | ✅ [`T1558.003-kerberoasting.yml`](./sigma/T1558.003-kerberoasting.yml) | ✅ Event 4769 confirmed | ✅ Complete |
+| INC | MITRE ID | Technique | Tactic | Sigma Rule | ELK Verified | Canonical Write-up | Status |
+|-----|----------|-----------|--------|------------|--------------|-------------------|--------|
+| INC-002 | T1558.004 | AS-REP Roasting | Credential Access | ✅ [`T1558.004-asrep-roasting.yml`](./sigma/T1558.004-asrep-roasting.yml) | ✅ Event 4768 confirmed | [`incidents/INC-002-asrep-roasting/`](../incidents/INC-002-asrep-roasting/) | ✅ Complete |
+| INC-003 | T1558.003 | Kerberoasting | Credential Access | ✅ [`T1558.003-kerberoasting.yml`](./sigma/T1558.003-kerberoasting.yml) | ✅ Event 4769 confirmed | [`incidents/INC-003-kerberoasting/`](../incidents/INC-003-kerberoasting/) | ⚠️ detection.md/timeline TODO |
 
 ---
 
@@ -19,13 +19,18 @@
 
 | INC | MITRE ID | Technique | Tactic |
 |-----|----------|-----------|--------|
-| INC-001 | T1557.001 | LLMNR/NBT-NS Poisoning | Credential Access |
 | INC-004 | T1550.002 | Pass-the-Hash | Lateral Movement |
 | INC-005 | T1003.006 | DCSync | Credential Access |
 | INC-006 | T1071.001 | C2 over HTTP/S | Command & Control |
 | INC-007 | T1566.001 | Phishing → Macro | Initial Access |
 
 > Sigma rules and ELK alerts for planned scenarios will be added **after** each scenario is executed and detection is verified live.
+
+---
+
+## Kibana Alert Rules
+
+> ⚠️ **TODO:** Export verified Kibana detection rules to `detection/kibana/` as `.ndjson` (Stack Management → Security → Rules → Export). Currently not committed.
 
 ---
 
@@ -36,7 +41,7 @@
 | Windows Security Events | Winlogbeat 8.17.0 | `winlogbeat-*` | ✅ Live |
 | Sysmon | Winlogbeat 8.17.0 | `winlogbeat-*` | ✅ Live |
 | PowerShell Logging | Winlogbeat 8.17.0 | `winlogbeat-*` | ✅ Live |
-| Linux Auditd/Filebeat | Filebeat | `filebeat-*` | ⚠️ Output config needs fix |
+| Linux Auditd/Filebeat | Filebeat 8.19.17 | `filebeat-*` | ✅ Live (Logstash output verified 2026-08-20) |
 | Suricata/Network IDS | — | — | ❌ Not deployed |
 
 ---
