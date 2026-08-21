@@ -67,7 +67,7 @@ impacket-GetNPUsers SOC.LAB/ -usersfile /home/kali/users.txt -no-pass \
 
 **Result:** Hash captured for `svc_asrep@SOC.LAB`.
 
-![AS-REP hash captured](../../threat-scenarios/INC-002-asrep-roasting/evidence/01-asrep-hash-captured.png.png)
+![AS-REP hash captured](./evidence/01-asrep-hash-captured.png)
 
 ### 2. Crack the Hash Offline
 
@@ -77,7 +77,7 @@ hashcat -m 18200 /home/kali/asrep_hashes.txt /home/kali/custom.txt --force
 
 **Result:** `Status: Cracked` — password recovered in 3 seconds.
 
-![Hashcat cracked](../../threat-scenarios/INC-002-asrep-roasting/evidence/02-hashcat-cracked.png.png)
+![Hashcat cracked](./evidence/02-hashcat-cracked.png)
 
 > Hash mode 18200 = Kerberos 5, etype 23, AS-REP. RC4 (etype 0x17) is weak by design — legacy compatibility.
 
@@ -101,9 +101,9 @@ See [`detection.md`](./detection.md) for full KQL query, Sigma rule, and validat
 
 **Result:** 2 documents — both attack runs captured.
 
-![Kibana 4768 detection](../../threat-scenarios/INC-002-asrep-roasting/evidence/03-kibana-4768-detection.png.png)
+![Kibana 4768 detection](./evidence/03-kibana-4768-detection.png)
 
-![ELK event fields](../../threat-scenarios/INC-002-asrep-roasting/evidence/04-elk-event-fields.png.png)
+![ELK event fields](./evidence/04-elk-event-fields.png)
 
 ---
 
@@ -119,8 +119,7 @@ See [`detection.md`](./detection.md) for full KQL query, Sigma rule, and validat
 | 6 | Raw hash | `$krb5asrep$23$svc_asrep` | **Yes — local only** |
 | 7 | Cracked credential | Plaintext password | **Yes — local only** |
 
-> Sensitive artefacts remain on the isolated Kali host and are excluded from version control via `.gitignore`.  
-> ⚠️ Screenshots currently stored in `threat-scenarios/INC-002-asrep-roasting/evidence/` — move to `./evidence/` and rename to single `.png` extension when done manually.
+> Sensitive artefacts remain on the isolated Kali host and are excluded from version control via `.gitignore`.
 
 ---
 
