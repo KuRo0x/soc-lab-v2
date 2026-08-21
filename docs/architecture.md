@@ -42,6 +42,10 @@
 | `winlogbeat-*` | DC, Win10 | DC verified; Win10 TODO |
 | `filebeat-*` | Ubuntu Victim | Running; output destination TBC |
 
+## Folder Convention — incidents/ vs threat-scenarios/
+
+> **Rule:** `incidents/` is the single canonical write-up for every incident (IR narrative, detection logic, timeline, evidence, remediation). `threat-scenarios/` never duplicates it — it only links back to `incidents/` and may add red-team-only detail (attack commands, prerequisites, tool setup) that has no place in a blue-team IR record.
+
 ## Future Improvements
 - [ ] VLAN segmentation (management / lab / attacker / malware)
 - [ ] Suricata on pfSense (network IDS)
