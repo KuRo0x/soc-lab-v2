@@ -70,8 +70,8 @@ Full diagram: [`docs/architecture.md`](./docs/architecture.md)
 | ID | Name | MITRE Tactic | Technique | Status |
 |----|------|-------------|-----------|--------|
 | INC-001 | LLMNR Poisoning + NTLM Relay | Credential Access | T1557.001 | 🔲 TODO |
-| INC-002 | AS-REP Roasting | Credential Access | T1558.004 | 🔲 TODO |
-| INC-003 | Kerberoasting | Credential Access | T1558.003 | 🔲 TODO |
+| INC-002 | AS-REP Roasting | Credential Access | T1558.004 | ✅ Complete |
+| INC-003 | Kerberoasting | Credential Access | T1558.003 | ✅ Complete |
 | INC-004 | Pass-the-Hash Lateral Movement | Lateral Movement | T1550.002 | 🔲 TODO |
 | INC-005 | DCSync Attack | Credential Access | T1003.006 | 🔲 TODO |
 | INC-006 | Malware Detonation + C2 Beacon | Execution / C2 | T1204, T1071 | 🔲 TODO |

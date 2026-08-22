@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-21**  
+> Last updated: **2026-08-22**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -40,6 +40,10 @@
 - [x] `Kerberos Authentication Service` — `Success and Failure` confirmed via `auditpol`
 - [x] `Kerberos Service Ticket Operations` — `Success and Failure` confirmed (required for EID 4769)
 
+### Docs & Configs (resolved from previous TODO list)
+- [x] **Logstash pipeline config** — saved to `configs/logstash/` (`beats-input.conf`, `pfsense-input.conf`, credentials redacted) — session 2026-08-21
+- [x] **AD structure** — users, groups, OUs documented in `docs/ad-structure.md` — session 2026-08-21
+
 ### Playbooks
 - [x] `IR-001` through `IR-004` — brute force, lateral movement, credential dumping, malware execution
 - [x] `IR-005-kerberos-attacks.md` — AS-REP Roasting + Kerberoasting (added 2026-08-21)
@@ -52,10 +56,8 @@
 - [ ] **INC-004 Pass-the-Hash** — next incident
 
 ### 🟡 Medium Priority
-- [ ] **Logstash pipeline config** — not saved to repo (`/etc/logstash/conf.d/` on ELK)
 - [ ] **Kibana detection rules** — not exported to `detection/kibana/`
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
-- [ ] **AD structure** — users, OUs, groups not documented in `docs/`
 - [ ] **CrackMapExec / Metasploit on Kali** — not verified (`which crackmapexec msfconsole`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
