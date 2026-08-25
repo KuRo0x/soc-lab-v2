@@ -26,7 +26,7 @@ The victim machine generated **40 Security Event ID 4624** events with `LogonTyp
 | Victim (Win10) | `SOC-Lab-Endpoint` / `172.16.0.10` |
 | Target account | `soc.lab\Administrator` |
 | Tool used | `CrackMapExec (CME)` |
-| NTLM hash | `217cac874bc6e41a6fec9b06d2eee7d5` |
+| NTLM hash | `217cac874bc6e41a6fec9b06d2eee7d5` *(lab artefact only — not a production credential)* |
 | Hash source | Derived from Administrator domain credential |
 
 ---
@@ -56,7 +56,7 @@ The NTLM hash was derived inline from the known plaintext credential:
 python3 -c "import hashlib; print(hashlib.new('md4', '<redacted>'.encode('utf-16le')).hexdigest())"
 ```
 
-**Result:** `217cac874bc6e41a6fec9b06d2eee7d5`
+**Result:** `217cac874bc6e41a6fec9b06d2eee7d5` *(lab artefact only — not a production credential)*
 
 > The plaintext credential is excluded from version control. The NTLM hash is included as it is the attack artefact.
 
@@ -166,7 +166,7 @@ See [`detection/sigma/T1550.002-pass-the-hash.yml`](../../detection/sigma/T1550.
 | 2 | ELK Record | `winlogbeat-2026.08.25` — 40 hits at 12:16:28Z | No |
 | 3 | CME output | `(Pwn3d!)` on Win10 + DC subnet scan | No |
 | 4 | RCE output | `whoami` → `soc\administrator`, `hostname` → `SOC-Lab-Endpoint` | No |
-| 5 | NTLM hash | `217cac874bc6e41a6fec9b06d2eee7d5` | Moderate |
+| 5 | NTLM hash | `217cac874bc6e41a6fec9b06d2eee7d5` *(lab artefact only)* | Moderate |
 | 6 | Plaintext credential | Source password | **Yes — local only** |
 
 ---
