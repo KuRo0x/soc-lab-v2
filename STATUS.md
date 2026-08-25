@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-22**  
+> Last updated: **2026-08-25**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -11,7 +11,7 @@
 - [x] **pfSense** (172.16.0.1) — firewall up, FLARE-VM outbound blocked, admin password changed ✅
 - [x] **ELK Stack** (172.16.0.4) — Elasticsearch + Kibana running, TLS enabled
 - [x] **DC / AD** (172.16.0.5) — domain `soc.lab` healthy, DNS working, hostname `SOC-Lab-DC`
-- [x] **Kali** (172.16.0.11) — network OK, Impacket installed and working
+- [x] **Kali** (172.16.0.11) — network OK, Impacket + CrackMapExec installed and working ✅
 - [x] **Win10 Victim** (172.16.0.10) — Sysmon + Winlogbeat **verified running** (session 2026-08-20)
 - [x] **Ubuntu Victim** (172.16.0.20) — network OK, Filebeat **verified** (session 2026-08-20)
 - [x] **FLARE-VM** (172.16.0.30) — network OK, isolated by design, no telemetry
@@ -21,7 +21,7 @@
 - [x] **Sysmon (DC):** sysmon-modular v4.90 (Olaf Hartong config) installed
 - [x] **Sysmon (Win10):** sysmon-modular v4.90 config verified — `C:\Windows\sysmonconfig.xml` confirmed
 - [x] **Win10 → ELK:** Winlogbeat running at `C:\Program Files\Winlogbeat\` — confirmed shipping
-- [x] **Confirmed index:** `winlogbeat-2026.08.12` and `winlogbeat-2026.08.20` — live data verified in Kibana
+- [x] **Confirmed index:** `winlogbeat-2026.08.12`, `winlogbeat-2026.08.20`, `winlogbeat-2026.08.25` — live data verified in Kibana
 - [x] **Ubuntu → ELK:** Filebeat 8.19.17 → Logstash `172.16.0.4:5044`
   - `sudo filebeat test config -e` → **Config OK**
   - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
@@ -53,18 +53,20 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **INC-004 Pass-the-Hash** — next incident
+- [ ] **INC-005 DCSync Attack** — next incident (T1003.006)
+  - Requires granting `svc_asrep` or another account DCSync rights on the DC first
+  - Tool: `impacket-secretsdump` from Kali
 
 ### 🟡 Medium Priority
 - [ ] **Kibana detection rules** — not exported to `detection/kibana/`
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
-- [ ] **CrackMapExec / Metasploit on Kali** — not verified (`which crackmapexec msfconsole`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
+- [ ] **INC-004 evidence screenshots** — upload to `incidents/INC-004-pass-the-hash/evidence/` (use the 40-event / last 15h Kibana screenshot)
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
-- [ ] **Suricata on pfSense** — IDS not deployed
+- [ ] **Suricata on pfSense** — IDS not deployed (needed for INC-006 C2 network detection)
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
@@ -76,7 +78,6 @@
 
 | Item | Question | Action |
 |------|----------|--------|
-| Kali tools | CME + Metasploit present? | `which crackmapexec msfconsole` on 172.16.0.11 |
 | Win10 Winlogbeat index | Is Win10 data landing in its own index? | Check Kibana index management |
 
 ---
@@ -87,8 +88,8 @@
 |----|------|-------|--------|
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete (2026-08-12) |
 | INC-003 | Kerberoasting | T1558.003 | ✅ Complete (2026-08-20) |
-| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | 🔲 **Next up** |
-| INC-005 | DCSync Attack | T1003.006 | 🔲 Not started |
+| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | ✅ **Complete (2026-08-25)** |
+| INC-005 | DCSync Attack | T1003.006 | 🔲 **Next up** |
 | INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Not started |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
 
@@ -129,19 +130,41 @@
 
 ---
 
-## 🔲 INC-004 — Pass-the-Hash (Next)
+## ✅ INC-004 — Pass-the-Hash (Complete — 2026-08-25)
+
+| Check | What Was Done | Result |
+|-------|--------------|--------|
+| Tool verified | CrackMapExec confirmed working on Kali | ✅ |
+| NTLM hash generated | `217cac874bc6e41a6fec9b06d2eee7d5` via Python hashlib | ✅ |
+| PtH executed | CME → Win10 (172.16.0.10) — `(Pwn3d!)` | ✅ |
+| RCE confirmed | `whoami` → `soc\administrator`, `hostname` → `SOC-Lab-Endpoint` | ✅ |
+| Net recon | `net user`, `ipconfig /all` — full network config exposed | ✅ |
+| Lateral movement | Subnet scan `172.16.0.0/24` — Win10 AND DC both `(Pwn3d!)` | ✅ |
+| ELK detection | 40× EID 4624, LogonType 3, NTLM, source 172.16.0.11 — `winlogbeat-2026.08.25` | ✅ |
+| Evidence screenshot | 40-event / last 15h Kibana view captured | ✅ |
+| Sigma rule | `detection/sigma/T1550.002-pass-the-hash.yml` — pushed | ✅ |
+| Writeup | `incidents/INC-004-pass-the-hash/README.md` | ✅ |
+| detection.md | `incidents/INC-004-pass-the-hash/detection.md` | ✅ |
+| timeline.md | `incidents/INC-004-pass-the-hash/timeline.md` | ✅ |
+| remediation.md | `incidents/INC-004-pass-the-hash/remediation.md` | ✅ |
+| Evidence upload | `incidents/INC-004-pass-the-hash/evidence/` | ⚠️ Screenshots pending upload |
+
+---
+
+## 🔲 INC-005 — DCSync Attack (Next)
 
 **Pre-requisites:**
-- [ ] Verify CrackMapExec is installed on Kali: `which crackmapexec`
-- [ ] Confirm a cracked NTLM hash is available from INC-002
+- [ ] Grant DCSync rights to an account (e.g. `svc_asrep`) on the DC
+  - Open ADUC → right-click domain root → Delegate Control → `Replicating Directory Changes` + `Replicating Directory Changes All`
+- [ ] Confirm `impacket-secretsdump` available on Kali: `which impacket-secretsdump`
 
-**Attack steps (from Kali):**
+**Attack (from Kali):**
 ```bash
-crackmapexec smb 172.16.0.10 -u Administrator -H <NTLM_HASH>
+impacket-secretsdump soc.lab/svc_asrep:'Summer2024!'@172.16.0.5
 ```
 
-**Detection:** EID `4624` with `LogonType: 3` and `AuthenticationPackageName: NTLM` in Kibana
+**Detection:** EID `4662` — `Replicating Directory Changes` on DC in `winlogbeat-*`
 
 **Deliverables:**
-- `incidents/INC-004-pass-the-hash/` writeup
-- `detection/sigma/T1550.002-pass-the-hash.yml`
+- `incidents/INC-005-dcsync/` writeup
+- `detection/sigma/T1003.006-dcsync.yml`
