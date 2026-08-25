@@ -1,0 +1,46 @@
+title: Pass-the-Hash via NTLM Network Logon
+id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+status: experimental
+description: |
+  Detects Pass-the-Hash attacks by identifying successful network logons (LogonType 3)
+  using NTLM authentication from a non-local source. PtH abuses NTLM by presenting
+  a raw hash instead of a plaintext password, bypassing the need to know credentials.
+  Confirmed in lab: 40 events generated in winlogbeat-2026.08.25 during INC-004.
+author: KuRo
+date: 2026-08-25
+references:
+  - https://attack.mitre.org/techniques/T1550/002/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624
+tags:
+  - attack.lateral_movement
+  - attack.t1550.002
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+    LogonType: 3
+    AuthenticationPackageName: NTLM
+  filter_local:
+    IpAddress|contains:
+      - '127.0.0.1'
+      - '::1'
+      - '-'
+  filter_machine_accounts:
+    TargetUserName|endswith: '$'
+  condition: selection and not filter_local and not filter_machine_accounts
+falsepositives:
+  - Legitimate NTLM network logons from domain-joined workstations in mixed environments
+  - Legacy applications requiring NTLM
+  - File server access from hosts that do not support Kerberos
+level: high
+fields:
+  - EventID
+  - LogonType
+  - AuthenticationPackageName
+  - TargetUserName
+  - TargetDomainName
+  - IpAddress
+  - WorkstationName
+  - SubjectUserName
