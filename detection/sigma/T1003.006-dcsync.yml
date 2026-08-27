@@ -1,0 +1,40 @@
+title: DCSync Attack — Non-DC Account Requesting AD Replication
+id: a7f5b3c2-1d4e-4f8a-9b2c-3e6d7f8a9b1c
+status: experimental
+description: |
+  Detects a DCSync attack where a non-Domain Controller account triggers
+  Active Directory replication using MS-DRSR protocol. This technique
+  (T1003.006) allows credential dumping of all domain hashes without
+  touching LSASS on the DC.
+references:
+  - https://attack.mitre.org/techniques/T1003/006/
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+author: KuRo
+date: 2026-08-27
+tags:
+  - attack.credential_access
+  - attack.t1003.006
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4662
+    Properties|contains:
+      - '1131f6aa-9c07-11d1-f79f-00c04fc2dcd2'
+      - '1131f6ad-9c07-11d1-f79f-00c04fc2dcd2'
+      - '89e95b76-444d-4c62-991a-0facbeda640c'
+  filter_dc_accounts:
+    SubjectUserName|endswith: '$'
+  condition: selection and not filter_dc_accounts
+falsepositives:
+  - Legitimate AD replication tools run by administrators
+  - Azure AD Connect sync accounts (if hybrid environment)
+  - Third-party backup tools with replication rights
+level: critical
+fields:
+  - SubjectUserName
+  - SubjectDomainName
+  - ObjectName
+  - Properties
+  - IpAddress
