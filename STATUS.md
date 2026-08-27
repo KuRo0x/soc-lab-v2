@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-25**  
+> Last updated: **2026-08-27**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -21,7 +21,7 @@
 - [x] **Sysmon (DC):** sysmon-modular v4.90 (Olaf Hartong config) installed
 - [x] **Sysmon (Win10):** sysmon-modular v4.90 config verified — `C:\Windows\sysmonconfig.xml` confirmed
 - [x] **Win10 → ELK:** Winlogbeat running at `C:\Program Files\Winlogbeat\` — confirmed shipping
-- [x] **Confirmed index:** `winlogbeat-2026.08.12`, `winlogbeat-2026.08.20`, `winlogbeat-2026.08.25` — live data verified in Kibana
+- [x] **Confirmed index:** `winlogbeat-2026.08.12`, `winlogbeat-2026.08.20`, `winlogbeat-2026.08.25`, `winlogbeat-2026.08.27` — live data verified in Kibana
 - [x] **Ubuntu → ELK:** Filebeat 8.19.17 → Logstash `172.16.0.4:5044`
   - `sudo filebeat test config -e` → **Config OK**
   - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
@@ -53,16 +53,16 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **INC-005 DCSync Attack** — next incident (T1003.006)
-  - Requires granting `svc_asrep` or another account DCSync rights on the DC first
-  - Tool: `impacket-secretsdump` from Kali
+- [ ] **Evidence uploads** — upload screenshots to evidence folders:
+  - `incidents/INC-003-kerberoasting/evidence/` — screenshots pending
+  - `incidents/INC-004-pass-the-hash/evidence/` — 40-event Kibana screenshot pending
+  - `incidents/INC-005-dcsync/evidence/` — 3 screenshots pending upload
 
 ### 🟡 Medium Priority
 - [ ] **Kibana detection rules** — not exported to `detection/kibana/`
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
-- [ ] **INC-004 evidence screenshots** — upload to `incidents/INC-004-pass-the-hash/evidence/` (use the 40-event / last 15h Kibana screenshot)
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
@@ -88,9 +88,9 @@
 |----|------|-------|--------|
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete (2026-08-12) |
 | INC-003 | Kerberoasting | T1558.003 | ✅ Complete (2026-08-20) |
-| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | ✅ **Complete (2026-08-25)** |
-| INC-005 | DCSync Attack | T1003.006 | 🔲 **Next up** |
-| INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Not started |
+| INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | ✅ Complete (2026-08-25) |
+| INC-005 | DCSync Attack | T1003.006 | ✅ **Complete (2026-08-27)** |
+| INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Next up |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
 
 ---
@@ -151,20 +151,35 @@
 
 ---
 
-## 🔲 INC-005 — DCSync Attack (Next)
+## ✅ INC-005 — DCSync Attack (Complete — 2026-08-27)
+
+| Check | What Was Done | Result |
+|-------|--------------|--------|
+| Audit policy | `auditpol` — `Directory Service Access: Success and Failure` enabled on DC | ✅ |
+| DCSync rights granted | ADUC → Delegate Control → `svc_asrep` granted `Replicating Directory Changes` + `Replicating Directory Changes All` on `soc.lab/` | ✅ |
+| Attack executed | `impacket-secretsdump soc.lab/svc_asrep@172.16.0.5` — full domain dump via DRSUAPI | ✅ |
+| Hashes captured | `Administrator`, `krbtgt`, `svc_asrep`, `svc_http`, `SOC-LAB-DC$`, `SOC-LAB-ENDPOIN$` | ✅ |
+| `krbtgt` hash | `0c0c6f91a7fa8c09826af3a88bf0224e` — Golden Ticket capable | ✅ |
+| ELK detection | 23× EID 4662 from `svc_asrep` on `SOC-Lab-DC` at 14:13:09 — `winlogbeat-2026.08.27` | ✅ |
+| GUIDs confirmed | `1131f6aa` (Replicating Directory Changes) present in all events | ✅ |
+| Sigma rule | `detection/sigma/T1003.006-dcsync.yml` — pushed & validated via sigma-cli | ✅ |
+| Kibana detection rule | `DCSync Attack — Non-DC Account Requesting AD Replication` — Critical, Risk 99, live & succeeded | ✅ |
+| Writeup | `incidents/INC-005-dcsync/README.md` | ✅ |
+| detection.md | `incidents/INC-005-dcsync/detection.md` | ✅ |
+| timeline.md | `incidents/INC-005-dcsync/timeline.md` | ✅ |
+| remediation.md | `incidents/INC-005-dcsync/remediation.md` | ✅ |
+| Evidence upload | `incidents/INC-005-dcsync/evidence/` | ⚠️ 3 screenshots pending upload |
+
+---
+
+## 🔲 INC-006 — Malware Detonation + C2 Beacon (Next)
 
 **Pre-requisites:**
-- [ ] Grant DCSync rights to an account (e.g. `svc_asrep`) on the DC
-  - Open ADUC → right-click domain root → Delegate Control → `Replicating Directory Changes` + `Replicating Directory Changes All`
-- [ ] Confirm `impacket-secretsdump` available on Kali: `which impacket-secretsdump`
+- [ ] Suricata deployed on pfSense for network-level C2 detection
+- [ ] FLARE-VM ready for malware analysis
+- [ ] C2 framework set up on Kali (Metasploit or Sliver)
 
-**Attack (from Kali):**
-```bash
-impacket-secretsdump soc.lab/svc_asrep:'Summer2024!'@172.16.0.5
-```
-
-**Detection:** EID `4662` — `Replicating Directory Changes` on DC in `winlogbeat-*`
-
-**Deliverables:**
-- `incidents/INC-005-dcsync/` writeup
-- `detection/sigma/T1003.006-dcsync.yml`
+**Attack plan:**
+- Generate payload on Kali → detonate on FLARE-VM → establish C2 beacon
+- Detect: Sysmon EID 1 (process create), EID 3 (network connect), pfSense Suricata alerts
+- MITRE: T1071.001 — Application Layer Protocol: Web Protocols
