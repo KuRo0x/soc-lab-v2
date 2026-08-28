@@ -52,12 +52,16 @@
 - [x] `winlogbeat-2026.08.26` → **5,228 documents indexed** with zero errors ✅
 - [x] Commit: `f028c11`
 
+### Network Diagram (Complete — 2026-08-28)
+- [x] `assets/diagrams/network-diagram.png` — full lab topology with icons, telemetry flows, attack paths, IDS/Suricata layer, FLARE-VM isolation ✅
+
 ### Configs Pushed to Repo (session 2026-08-20)
 - [x] `configs/sysmon/sysmonconfig.xml` — sysmon-modular v4.90, MITRE-tagged
 - [x] `configs/winlogbeat/dc-winlogbeat.yml` — DC config
 - [x] `configs/winlogbeat/win10-winlogbeat.yml` — Win10 config, verified & synced
 - [x] `configs/filebeat/filebeat.yml` — Ubuntu victim, Logstash output, v8.19.17 verified
 - [x] `configs/network/pfsense-rules.md` — live rules from UI + production hardening section
+- [x] `configs/network/suricata-pfsense.md` — Suricata IDS config + ELK integration doc
 - [x] `configs/detection-rules/README.md` — placeholder for Kibana rule exports
 
 ### Kerberos Audit Policy (DC)
@@ -84,11 +88,9 @@
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
-- [ ] **Network diagram updated** — reflect IDS/Suricata layer in `assets/diagrams/`
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
-- [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
 
