@@ -55,6 +55,13 @@
 ### Network Diagram (Complete — 2026-08-28)
 - [x] `assets/diagrams/network-diagram.png` — full lab topology with icons, telemetry flows, attack paths, IDS/Suricata layer, FLARE-VM isolation ✅
 
+### pfSense Backup (Complete — 2026-08-28)
+- [x] `configs/network/pfsense-backup.xml` — exported from Diagnostics → Backup/Restore, secrets redacted ✅
+
+### MAC Address Map (Complete — 2026-08-28)
+- [x] `docs/dhcp-static-map.md` — ARP table captured from pfSense, all LAN hosts mapped ✅
+- ⚠️ FLARE-VM (172.16.0.30) MAC not in ARP cache — capture when VM is active
+
 ### Configs Pushed to Repo (session 2026-08-20)
 - [x] `configs/sysmon/sysmonconfig.xml` — sysmon-modular v4.90, MITRE-tagged
 - [x] `configs/winlogbeat/dc-winlogbeat.yml` — DC config
@@ -84,13 +91,12 @@
 - ✅ ~~**Evidence uploads**~~ — all incident evidence folders up to date (2026-08-28)
 
 ### 🟡 Medium Priority
-- [ ] **Kibana detection rules** — not exported to `detection/kibana/`
-- [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
-- [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
-- [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
+- [ ] **Kibana detection rules** — export deferred; waiting for more rules to be created before exporting to `detection/kibana/`
+- [ ] **Kibana dashboards** — export deferred; building professional dashboards first, will export once complete
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
+- [ ] **FLARE-VM MAC address** — grab from VM when active, add to `docs/dhcp-static-map.md`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
 
