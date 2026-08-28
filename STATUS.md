@@ -89,10 +89,16 @@
 
 ### 🔴 High Priority
 - ✅ ~~**Evidence uploads**~~ — all incident evidence folders up to date (2026-08-28)
+- [ ] **Kibana alerting** — configure email or Slack notifications when detection rules fire
+  - Kibana → Stack Management → Rules → select rule → Add action → Email / Slack connector
+  - Do for all 5 active detection rules (INC-002 through INC-005 + any new)
+  - Proves end-to-end: attack fires → rule triggers → analyst gets notified
+- [ ] **Professional Kibana dashboards** — build and export once complete
+  - Suggested panels: top attack sources, MITRE ATT&CK heatmap, event timeline, alert severity breakdown
+  - Export via Stack Management → Saved Objects → `.ndjson` → commit to `detection/kibana/`
 
 ### 🟡 Medium Priority
-- [ ] **Kibana detection rules** — export deferred; waiting for more rules to be created before exporting to `detection/kibana/`
-- [ ] **Kibana dashboards** — export deferred; building professional dashboards first, will export once complete
+- [ ] **Kibana detection rules export** — deferred until more rules built; export all to `detection/kibana/`
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
