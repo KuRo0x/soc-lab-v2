@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<!-- pfSense Configuration Backup -->
+<!-- Generated: 2026-08-28 | Lab: soc-lab-v2 -->
+<!-- SENSITIVE VALUES REDACTED: bcrypt-hash, TLS cert/key, SSH host keys -->
+<pfsense>
+<version>24.0</version>
+<lastchange/>
+<system>
+  <optimization>normal</optimization>
+  <hostname>pfSense</hostname>
+  <domain>home.arpa</domain>
+  <dnsallowoverride/>
+  <group>
+    <name>all</name>
+    <description><![CDATA[ All Users ]]></description>
+    <scope>system</scope>
+    <gid>1998</gid>
+    <member>0</member>
+  </group>
+  <group>
+    <name>admins</name>
+    <description><![CDATA[ System Administrators ]]></description>
+    <scope>system</scope>
+    <gid>1999</gid>
+    <member>0</member>
+    <priv>page-all</priv>
+  </group>
+  <user>
+    <name>admin</name>
+    <descr><![CDATA[ System Administrator ]]></descr>
+    <scope>system</scope>
+    <groupname>admins</groupname>
+    <uid>0</uid>
+    <priv>user-shell-access</priv>
+    <bcrypt-hash>REDACTED</bcrypt-hash>
+  </user>
+  <nextuid>2000</nextuid>
+  <nextgid>2000</nextgid>
+  <timeservers>2.pfsense.pool.ntp.org</timeservers>
+  <webgui>
+    <protocol>https</protocol>
+    <loginautocomplete/>
+    <ssl-certref>6a3c0dbd55531</ssl-certref>
+    <dashboardcolumns>2</dashboardcolumns>
+    <max_procs>2</max_procs>
+    <roaming>enabled</roaming>
+  </webgui>
+  <disablenatreflection>yes</disablenatreflection>
+  <ipv6allow/>
+  <maximumtableentries>400000</maximumtableentries>
+  <powerd_ac_mode>hadp</powerd_ac_mode>
+  <powerd_battery_mode>hadp</powerd_battery_mode>
+  <powerd_normal_mode>hadp</powerd_normal_mode>
+  <bogons>
+    <interval>monthly</interval>
+  </bogons>
+  <hn_altq_enable/>
+  <timezone>Etc/UTC</timezone>
+  <disablechecksumoffloading/>
+  <disablesegmentationoffloading/>
+  <disablelargereceiveoffloading/>
+  <serialspeed>115200</serialspeed>
+  <primaryconsole>video</primaryconsole>
+  <ssh>
+    <enable>enabled</enable>
+  </ssh>
+</system>
+<interfaces>
+  <wan>
+    <enable/>
+    <if>em0</if>
+    <ipaddr>dhcp</ipaddr>
+    <ipaddrv6>dhcp6</ipaddrv6>
+    <gateway/>
+    <media/>
+    <mediaopt/>
+    <dhcp6-duid/>
+    <dhcp6-ia-pd-len>0</dhcp6-ia-pd-len>
+    <descr><![CDATA[ WAN ]]></descr>
+  </wan>
+  <lan>
+    <enable/>
+    <if>em1</if>
+    <ipaddr>172.16.0.1</ipaddr>
+    <subnet>24</subnet>
+    <subnetv6>64</subnetv6>
+    <media/>
+    <mediaopt/>
+    <track6-interface>wan</track6-interface>
+    <track6-prefix-id>0</track6-prefix-id>
+    <descr><![CDATA[ LAN ]]></descr>
+  </lan>
+</interfaces>
+<staticroutes/>
+<dhcpd>
+  <lan>
+    <enable/>
+    <range>
+      <from>172.16.0.100</from>
+      <to>172.16.0.199</to>
+    </range>
+  </lan>
+</dhcpd>
+<syslog>
+  <filterdescriptions>1</filterdescriptions>
+  <nentries>500</nentries>
+  <logcompressiontype>none</logcompressiontype>
+  <format>rfc3164</format>
+  <remoteserver>172.16.0.4:5140</remoteserver>
+  <remoteserver2/>
+  <remoteserver3/>
+  <sourceip/>
+  <ipproto>ipv4</ipproto>
+  <logall/>
+  <logconfigchanges>enabled</logconfigchanges>
+  <enable/>
+  <auth/>
+</syslog>
+<nat>
+  <outbound>
+    <mode>automatic</mode>
+  </outbound>
+</nat>
+<filter>
+  <!-- Rule 1: Block FLARE-VM outbound -->
+  <rule>
+    <id/>
+    <tracker>1782944544</tracker>
+    <type>block</type>
+    <interface>lan</interface>
+    <ipprotocol>inet</ipprotocol>
+    <statetype><![CDATA[ keep state ]]></statetype>
+    <source>
+      <address>172.16.0.30</address>
+    </source>
+    <destination>
+      <any/>
+    </destination>
+    <log/>
+    <descr><![CDATA[ BLOCK-FLARE-VM-OUTBOUND ]]></descr>
+  </rule>
+  <!-- Rule 2: Default allow LAN to any -->
+  <rule>
+    <type>pass</type>
+    <ipprotocol>inet</ipprotocol>
+    <descr><![CDATA[ Default allow LAN to any rule ]]></descr>
+    <interface>lan</interface>
+    <tracker>0100000101</tracker>
+    <source>
+      <network>lan</network>
+    </source>
+    <destination>
+      <any/>
+    </destination>
+  </rule>
+  <!-- Rule 3: Default allow LAN IPv6 to any -->
+  <rule>
+    <type>pass</type>
+    <ipprotocol>inet6</ipprotocol>
+    <descr><![CDATA[ Default allow LAN IPv6 to any rule ]]></descr>
+    <interface>lan</interface>
+    <tracker>0100000102</tracker>
+    <source>
+      <network>lan</network>
+    </source>
+    <destination>
+      <any/>
+    </destination>
+  </rule>
+</filter>
+<gateways>
+  <gateway_item>
+    <interface>wan</interface>
+    <gateway>dynamic</gateway>
+    <name>WAN_DHCP</name>
+    <weight>1</weight>
+    <ipprotocol>inet</ipprotocol>
+    <descr><![CDATA[ Interface WAN_DHCP Gateway ]]></descr>
+    <gw_down_kill_states/>
+  </gateway_item>
+</gateways>
+<!-- TLS certificate and private key redacted -->
+<cert>
+  <refid>6a3c0dbd55531</refid>
+  <descr><![CDATA[ GUI default (6a3c0dbd55531) ]]></descr>
+  <type>server</type>
+  <crt>REDACTED</crt>
+  <prv>REDACTED</prv>
+</cert>
+<!-- SSH host keys redacted -->
+<sshdata>
+  <sshkeyfile><filename>ssh_host_rsa_key</filename><xmldata>REDACTED</xmldata></sshkeyfile>
+  <sshkeyfile><filename>ssh_host_rsa_key.pub</filename><xmldata>REDACTED</xmldata></sshkeyfile>
+  <sshkeyfile><filename>ssh_host_ed25519_key</filename><xmldata>REDACTED</xmldata></sshkeyfile>
+  <sshkeyfile><filename>ssh_host_ed25519_key.pub</filename><xmldata>REDACTED</xmldata></sshkeyfile>
+</sshdata>
+<installedpackages>
+  <package>
+    <name>suricata</name>
+    <version>7.0.9</version>
+    <website>http://suricata-ids.org/</website>
+    <descr><![CDATA[ High Performance Network IDS, IPS and Security Monitoring engine by OISF. ]]></descr>
+  </package>
+  <suricata>
+    <config>
+      <!-- Rulesets enabled -->
+      <snortcommunityrules>on</snortcommunityrules>
+      <enable_etopen_rules>on</enable_etopen_rules>
+      <enable_feodo_botnet_c2_rules>on</enable_feodo_botnet_c2_rules>
+      <enable_abuse_ssl_blacklist_rules>on</enable_abuse_ssl_blacklist_rules>
+      <log_to_systemlog>on</log_to_systemlog>
+      <log_to_systemlog_facility>local1</log_to_systemlog_facility>
+      <log_to_systemlog_priority>notice</log_to_systemlog_priority>
+    </config>
+    <rule>
+      <interface>lan</interface>
+      <enable>on</enable>
+      <uuid>18050</uuid>
+      <descr><![CDATA[ LAN ]]></descr>
+      <!-- EVE JSON → syslog → Logstash 172.16.0.4:5140 -->
+      <enable_eve_log>on</enable_eve_log>
+      <eve_output_type>syslog</eve_output_type>
+      <eve_systemlog_facility>local1</eve_systemlog_facility>
+      <eve_systemlog_priority>notice</eve_systemlog_priority>
+      <eve_log_alerts>on</eve_log_alerts>
+      <eve_log_http>on</eve_log_http>
+      <eve_log_dns>on</eve_log_dns>
+      <eve_log_tls>on</eve_log_tls>
+      <eve_log_smb>on</eve_log_smb>
+      <eve_log_krb5>on</eve_log_krb5>
+      <eve_log_ssh>on</eve_log_ssh>
+      <eve_log_smtp>on</eve_log_smtp>
+      <eve_log_ftp>on</eve_log_ftp>
+      <blockoffenders>off</blockoffenders>
+      <!-- IDS-only mode (no blocking) -->
+      <intf_promisc_mode>on</intf_promisc_mode>
+      <alertsystemlog>on</alertsystemlog>
+      <alertsystemlog_facility>local1</alertsystemlog_facility>
+      <alertsystemlog_priority>notice</alertsystemlog_priority>
+    </rule>
+  </suricata>
+</installedpackages>
+<revision>
+  <time>1787522203</time>
+  <description><![CDATA[ admin@172.16.0.10 (Local Database): Suricata pkg: modified interface configuration for LAN ]]></description>
+</revision>
+<dhcpbackend>isc</dhcpbackend>
+</pfsense>
