@@ -37,6 +37,7 @@
 - [x] EVE Output Type set to `SYSLOG` — forwarding to `172.16.0.4:5140`
 - [x] `suricata-eve-2026.08.23` index confirmed in Elasticsearch ✅
 - [x] Pipeline `03-suricata-eve.conf` running on port `5045` ✅
+- [x] Config documented in `configs/network/suricata-pfsense.md` ✅
 - [x] **Issue #1 closed** ✅
 
 ### All Logstash Pipelines Green
@@ -76,17 +77,13 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **Evidence uploads** — upload screenshots to evidence folders:
-  - `incidents/INC-003-kerberoasting/evidence/` — screenshots pending
-  - `incidents/INC-004-pass-the-hash/evidence/` — 40-event Kibana screenshot pending
-  - `incidents/INC-005-dcsync/evidence/` — 3 screenshots pending upload
+- ✅ ~~**Evidence uploads**~~ — all incident evidence folders up to date (2026-08-28)
 
 ### 🟡 Medium Priority
 - [ ] **Kibana detection rules** — not exported to `detection/kibana/`
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
-- [ ] **Suricata config doc** — save to `configs/network/suricata-pfsense.md`
 - [ ] **Network diagram updated** — reflect IDS/Suricata layer in `assets/diagrams/`
 
 ### 🟢 Low Priority
@@ -94,7 +91,6 @@
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
-- [ ] **INC-003 evidence screenshots** — add to `incidents/INC-003-kerberoasting/evidence/`
 
 ---
 
@@ -151,7 +147,7 @@
 | detection.md | `incidents/INC-003-kerberoasting/detection.md` | ✅ |
 | timeline.md | `incidents/INC-003-kerberoasting/timeline.md` | ✅ |
 | remediation.md | `incidents/INC-003-kerberoasting/remediation.md` | ✅ |
-| Evidence screenshots | `incidents/INC-003-kerberoasting/evidence/` | ⚠️ Folder exists, screenshots pending |
+| Evidence screenshots | `incidents/INC-003-kerberoasting/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
@@ -166,13 +162,13 @@
 | Net recon | `net user`, `ipconfig /all` — full network config exposed | ✅ |
 | Lateral movement | Subnet scan `172.16.0.0/24` — Win10 AND DC both `(Pwn3d!)` | ✅ |
 | ELK detection | 40× EID 4624, LogonType 3, NTLM, source 172.16.0.11 — `winlogbeat-2026.08.25` | ✅ |
-| Evidence screenshot | 40-event / last 15h Kibana view captured | ✅ |
+| Evidence screenshot | 40-event / last 15h Kibana view | ✅ |
 | Sigma rule | `detection/sigma/T1550.002-pass-the-hash.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-004-pass-the-hash/README.md` | ✅ |
 | detection.md | `incidents/INC-004-pass-the-hash/detection.md` | ✅ |
 | timeline.md | `incidents/INC-004-pass-the-hash/timeline.md` | ✅ |
 | remediation.md | `incidents/INC-004-pass-the-hash/remediation.md` | ✅ |
-| Evidence upload | `incidents/INC-004-pass-the-hash/evidence/` | ⚠️ Screenshots pending upload |
+| Evidence upload | `incidents/INC-004-pass-the-hash/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
@@ -193,7 +189,7 @@
 | detection.md | `incidents/INC-005-dcsync/detection.md` | ✅ |
 | timeline.md | `incidents/INC-005-dcsync/timeline.md` | ✅ |
 | remediation.md | `incidents/INC-005-dcsync/remediation.md` | ✅ |
-| Evidence upload | `incidents/INC-005-dcsync/evidence/` | ⚠️ 3 screenshots pending upload |
+| Evidence upload | `incidents/INC-005-dcsync/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
