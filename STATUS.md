@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-27**  
+> Last updated: **2026-08-28**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -27,6 +27,29 @@
   - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
   - ⚠️ TLS disabled on Filebeat → Logstash (plain text — acceptable for isolated lab)
 - [x] **FLARE-VM:** No telemetry — intentional
+
+### Suricata → ELK (Complete — 2026-08-26)
+- [x] **Suricata 7.0.9** installed on pfSense 2.8.1
+- [x] Hardware offloading disabled, pfSense rebooted
+- [x] LAN (em1) interface configured — EVE JSON logging enabled (DNS, HTTP, Kerberos, SMB, TLS, SSH, JA3/JA3S)
+- [x] Rulesets downloaded: ETOpen, Snort GPLv2, Feodo Tracker, ABUSE.ch SSL Blacklist (12h auto-update)
+- [x] Suricata running on LAN — green status, IDS-only mode
+- [x] EVE Output Type set to `SYSLOG` — forwarding to `172.16.0.4:5140`
+- [x] `suricata-eve-2026.08.23` index confirmed in Elasticsearch ✅
+- [x] Pipeline `03-suricata-eve.conf` running on port `5045` ✅
+- [x] **Issue #1 closed** ✅
+
+### All Logstash Pipelines Green
+| Pipeline | Port | Status |
+|---|---|---|
+| `beats.conf` | 5044 | ✅ Winlogbeat + Filebeat |
+| `02-pfsense-syslog.conf` | 5140 | ✅ pfSense system + Suricata syslog |
+| `03-suricata-eve.conf` | 5045 | ✅ Suricata EVE JSON |
+
+### Winlogbeat 9.x Fix (2026-08-26)
+- [x] Fixed `winlog.event_data.ProcessCreationTime` HTTP 400 indexing error — `remove_field` mutate in `beats.conf`
+- [x] `winlogbeat-2026.08.26` → **5,228 documents indexed** with zero errors ✅
+- [x] Commit: `f028c11`
 
 ### Configs Pushed to Repo (session 2026-08-20)
 - [x] `configs/sysmon/sysmonconfig.xml` — sysmon-modular v4.90, MITRE-tagged
@@ -63,10 +86,11 @@
 - [ ] **Kibana dashboards** — not exported (Stack Management → Saved Objects → Export `.ndjson`)
 - [ ] **pfSense XML backup** — export via Diagnostics > Backup/Restore and commit to repo
 - [ ] **MAC addresses** — run `arp -a` on pfSense to populate DHCP static mapping table
+- [ ] **Suricata config doc** — save to `configs/network/suricata-pfsense.md`
+- [ ] **Network diagram updated** — reflect IDS/Suricata layer in `assets/diagrams/`
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
-- [ ] **Suricata on pfSense** — IDS not deployed (needed for INC-006 C2 network detection)
 - [ ] **Network diagram PNG** — add to `assets/diagrams/`
 - [ ] **VLAN segmentation** — flat network, planned for v2.1
 - [ ] **DC segmentation rules** — implement post-lab hardening rules from `configs/network/pfsense-rules.md`
@@ -79,6 +103,7 @@
 | Item | Question | Action |
 |------|----------|--------|
 | Win10 Winlogbeat index | Is Win10 data landing in its own index? | Check Kibana index management |
+| Suricata syslog truncation | FreeBSD syslog truncates at 480 bytes — long EVE JSON events may arrive broken | Monitor `suricata-*` index for parse failures; consider syslog-ng or log forwarder VM as long-term fix |
 
 ---
 
@@ -175,7 +200,7 @@
 ## 🔲 INC-006 — Malware Detonation + C2 Beacon (Next)
 
 **Pre-requisites:**
-- [ ] Suricata deployed on pfSense for network-level C2 detection
+- [x] Suricata deployed on pfSense for network-level C2 detection ✅ (complete 2026-08-26)
 - [ ] FLARE-VM ready for malware analysis
 - [ ] C2 framework set up on Kali (Metasploit or Sliver)
 
