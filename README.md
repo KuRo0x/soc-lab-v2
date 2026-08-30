@@ -1,5 +1,11 @@
 # 🛡️ SOC Home Lab v2
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
+![MITRE ATT&CK](https://img.shields.io/badge/MITRE%20ATT%26CK-mapped-orange.svg)
+![ELK Stack](https://img.shields.io/badge/SIEM-ELK%208.x-005571?logo=elastic)
+![Platform](https://img.shields.io/badge/platform-VMware-607078?logo=vmware)
+
 > **Advanced, enterprise-grade SOC lab built for detection engineering, threat hunting, incident response, and malware analysis — not a toy lab.**
 
 ---
@@ -35,7 +41,7 @@ What separates this from a basic home lab:
     |         |
 [Win10]  [Ubuntu]
 172.16.0.10  172.16.0.20
-(Victim)  (Victim)
+(Victim)     (Victim)
 
                     [FLARE-VM] ── isolated ──▶ pfSense BLOCK rule
                     172.16.0.30
@@ -58,8 +64,8 @@ Full diagram: [`docs/architecture.md`](./docs/architecture.md)
 | Winlogbeat | Windows log shipping | 8.x |
 | Filebeat | Linux log shipping | 8.x |
 | Sigma | Vendor-neutral detection rules | — |
-| Suricata | Network IDS/IPS | TODO |
-| FLARE-VM | Malware analysis workstation | Isolated, no telemetry |
+| Suricata | Network IDS/IPS | Planned (v3) |
+| FLARE-VM | Malware analysis workstation | Isolated, no telemetry to SIEM |
 | Active Directory | Target enterprise environment | soc.lab domain |
 | Kali Linux | Attacker simulation | Rolling |
 
@@ -69,13 +75,13 @@ Full diagram: [`docs/architecture.md`](./docs/architecture.md)
 
 | ID | Name | MITRE Tactic | Technique | Status |
 |----|------|-------------|-----------|--------|
-| INC-001 | LLMNR Poisoning + NTLM Relay | Credential Access | T1557.001 | 🔲 TODO |
+| INC-001 | LLMNR Poisoning + NTLM Relay | Credential Access | T1557.001 | 🔲 Planned |
 | INC-002 | AS-REP Roasting | Credential Access | T1558.004 | ✅ Complete |
 | INC-003 | Kerberoasting | Credential Access | T1558.003 | ✅ Complete |
-| INC-004 | Pass-the-Hash Lateral Movement | Lateral Movement | T1550.002 | 🔲 TODO |
-| INC-005 | DCSync Attack | Credential Access | T1003.006 | 🔲 TODO |
-| INC-006 | Malware Detonation + C2 Beacon | Execution / C2 | T1204, T1071 | 🔲 TODO |
-| INC-007 | Phishing → Macro → PowerShell | Initial Access | T1566.001, T1059.005 | 🔲 TODO |
+| INC-004 | Pass-the-Hash Lateral Movement | Lateral Movement | T1550.002 | 🔲 Planned |
+| INC-005 | DCSync Attack | Credential Access | T1003.006 | 🔲 Planned |
+| INC-006 | Malware Detonation + C2 Beacon | Execution / C2 | T1204, T1071 | 🔲 Planned |
+| INC-007 | Phishing → Macro → PowerShell | Initial Access | T1566.001, T1059.005 | 🔲 Planned |
 
 ---
 
@@ -89,7 +95,7 @@ Full diagram: [`docs/architecture.md`](./docs/architecture.md)
 | AD Security | Domain attacks simulated and detected end-to-end |
 | Incident Response | Per-incident timelines, containment steps, IOC extraction |
 | Malware Analysis | FLARE-VM static + dynamic analysis workflow |
-| Network Security | pfSense rules, segmentation, IDS (Suricata — TODO) |
+| Network Security | pfSense rules, network segmentation, IDS (Suricata — planned) |
 
 ---
 
@@ -101,8 +107,18 @@ See [`docs/build-guide.md`](./docs/build-guide.md) for full step-by-step deploym
 
 ## Status
 
-See [`STATUS.md`](./STATUS.md) for what's verified, what's missing, and what needs investigation.
+See [`STATUS.md`](./STATUS.md) for what's verified, what's in progress, and what's planned next.
 
 ---
 
-*Built by [KuRo](https://github.com/KuRo0x)*
+## Connect
+
+Built by **KuRo** — Detection Engineer focused on ELK-based SOC builds, Sigma rules, and MITRE ATT&CK-aligned detection pipelines.
+
+Open to remote contractor opportunities with MSSPs and SOC teams.
+
+🔗 [GitHub](https://github.com/KuRo0x) · 💼 [LinkedIn](https://www.linkedin.com/in/KuRo0x)
+
+---
+
+*MIT License · 2026*
