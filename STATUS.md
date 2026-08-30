@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-28**  
+> Last updated: **2026-08-30**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -88,7 +88,7 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- ✅ ~~**Evidence uploads**~~ — all incident evidence folders up to date (2026-08-28)
+- [ ] **INC-001 — LLMNR Poisoning + NTLM Relay** — only gap in the incident sequence, scaffold and execute next
 - [ ] **Kibana alerting** — configure email or Slack notifications when detection rules fire
   - Kibana → Stack Management → Rules → select rule → Add action → Email / Slack connector
   - Do for all 5 active detection rules (INC-002 through INC-005 + any new)
@@ -121,12 +121,13 @@
 
 | ID | Name | MITRE | Status |
 |----|------|-------|--------|
+| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | 🔲 Next up |
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete (2026-08-12) |
 | INC-003 | Kerberoasting | T1558.003 | ✅ Complete (2026-08-20) |
 | INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | ✅ Complete (2026-08-25) |
-| INC-005 | DCSync Attack | T1003.006 | ✅ **Complete (2026-08-27)** |
-| INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Next up |
-| INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Not started |
+| INC-005 | DCSync Attack | T1003.006 | ✅ Complete (2026-08-27) |
+| INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Planned |
+| INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Planned |
 
 ---
 
@@ -207,7 +208,28 @@
 
 ---
 
-## 🔲 INC-006 — Malware Detonation + C2 Beacon (Next)
+## 🔲 INC-001 — LLMNR Poisoning + NTLM Relay (Next)
+
+**Why this matters:**
+- LLMNR/NBT-NS poisoning is one of the most common initial credential theft vectors in real environments
+- Demonstrates network-layer attack detection (Responder + ntlmrelayx) — different from the AD/Kerberos focus of INC-002 through INC-005
+- Requires Suricata + Winlogbeat correlation for full detection coverage
+
+**Pre-requisites:**
+- [x] Suricata deployed on pfSense ✅
+- [x] Winlogbeat shipping from Win10 + DC ✅
+- [ ] Responder installed on Kali
+- [ ] ntlmrelayx ready
+
+**Attack plan:**
+- Run Responder on Kali LAN interface → capture NTLMv2 hashes from victim
+- Optionally relay with ntlmrelayx → RCE on target
+- Detect: Suricata LLMNR alerts + EID 4625/4624 NTLM events in Winlogbeat
+- MITRE: T1557.001 — Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning
+
+---
+
+## 🔲 INC-006 — Malware Detonation + C2 Beacon (Planned)
 
 **Pre-requisites:**
 - [x] Suricata deployed on pfSense for network-level C2 detection ✅ (complete 2026-08-26)
