@@ -1,3 +1,5 @@
+<div align="center">
+
 # 🛡️ SOC Home Lab v2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -7,6 +9,8 @@
 ![Platform](https://img.shields.io/badge/platform-VMware-607078?logo=vmware)
 
 > **Advanced, enterprise-grade SOC lab built for detection engineering, threat hunting, incident response, and malware analysis — not a toy lab.**
+
+</div>
 
 ---
 
@@ -25,30 +29,13 @@ What separates this from a basic home lab:
 
 ## Architecture
 
-```
-                        [Internet]
-                            |
-                     [pfSense FW]
-                      172.16.0.1
-                            |
-         ┌──────────────────┼──────────────────┐
-         |                  |                  |
-    [ELK SIEM]          [DC / AD]         [Kali Linux]
-    172.16.0.4          172.16.0.5         172.16.0.11
-    (Ubuntu 22.04)   (Win Server 2019)    (Attacker)
-         |
-    ┌────┴────┐
-    |         |
-[Win10]  [Ubuntu]
-172.16.0.10  172.16.0.20
-(Victim)     (Victim)
+<div align="center">
 
-                    [FLARE-VM] ── isolated ──▶ pfSense BLOCK rule
-                    172.16.0.30
-                    (Malware Analysis)
-```
+![Network Diagram](./assets/diagrams/network-diagram.png)
 
-Full diagram: [`docs/architecture.md`](./docs/architecture.md)
+</div>
+
+Full details: [`docs/architecture.md`](./docs/architecture.md)
 
 ---
 
