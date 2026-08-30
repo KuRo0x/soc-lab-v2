@@ -65,8 +65,8 @@ Full details: [`docs/architecture.md`](./docs/architecture.md)
 | INC-001 | LLMNR Poisoning + NTLM Relay | Credential Access | T1557.001 | 🔲 Planned |
 | INC-002 | AS-REP Roasting | Credential Access | T1558.004 | ✅ Complete |
 | INC-003 | Kerberoasting | Credential Access | T1558.003 | ✅ Complete |
-| INC-004 | Pass-the-Hash Lateral Movement | Lateral Movement | T1550.002 | 🔲 Planned |
-| INC-005 | DCSync Attack | Credential Access | T1003.006 | 🔲 Planned |
+| INC-004 | Pass-the-Hash Lateral Movement | Lateral Movement | T1550.002 | ✅ Complete |
+| INC-005 | DCSync Attack | Credential Access | T1003.006 | ✅ Complete |
 | INC-006 | Malware Detonation + C2 Beacon | Execution / C2 | T1204, T1071 | 🔲 Planned |
 | INC-007 | Phishing → Macro → PowerShell | Initial Access | T1566.001, T1059.005 | 🔲 Planned |
 
