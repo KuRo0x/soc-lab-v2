@@ -104,7 +104,7 @@ Built by **KuRo** — Detection Engineer focused on ELK-based SOC builds, Sigma 
 
 Open to remote contractor opportunities with MSSPs and SOC teams.
 
-🔗 [GitHub](https://github.com/KuRo0x) · 💼 [LinkedIn](https://www.linkedin.com/in/KuRo0x)
+🔗 [GitHub](https://github.com/KuRo0x) · 💼 [LinkedIn](https://www.linkedin.com/in/walid-ait-zaouit/)
 
 ---
 
