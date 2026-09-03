@@ -10,18 +10,6 @@
 
 ---
 
-## Sigma Rule — NTLM Relay → LDAP ACL Write (Winlogbeat)
-
-See `detection/sigma/T1557.001-llmnr-ntlm-relay.yml`
-
-Converted Lucene query (sigma-cli 3.1.0, ecs_windows pipeline):
-
-```lucene
-winlog.channel:Security AND (event.code:4662 AND winlog.event_data.ObjectServer:DS AND (winlog.event_data.AccessMask:(*0x20* OR *0x40000*)))
-```
-
----
-
 ## KQL Query — Kibana (Detection Evidence)
 
 ```kql
@@ -32,6 +20,50 @@ AND _index: "winlogbeat-2026.09.03"
 ```
 
 **Result:** 2 events — records 71400 and 71402 — fired at 11:31:12Z during relay session.
+
+---
+
+## Sigma Rule
+
+See [`detection/sigma/T1557.001-llmnr-ntlm-relay.yml`](../../detection/sigma/T1557.001-llmnr-ntlm-relay.yml)
+
+```yaml
+title: NTLM Relay - Suspicious AD Object ACL Write via LDAP
+id: f3a1e2b0-2c5d-4f9a-8e7b-1d4c6a7f8901
+status: experimental
+description: >
+  Detects two EID 4662 Directory Service Access events — WRITE_DAC (0x40000)
+  and Write Property (0x20) — fired against an AD object by a domain admin account.
+  This pattern is consistent with ntlmrelayx LDAP relay escalation (T1557.001)
+  granting Replication-Get-Changes-All rights to the relayed account.
+author: KuRo
+date: 2026-09-03
+tags:
+  - attack.credential_access
+  - attack.lateral_movement
+  - attack.t1557.001
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4662
+    ObjectServer: DS
+    AccessMask|contains:
+      - '0x20'
+      - '0x40000'
+  condition: selection
+falsepositives:
+  - Legitimate AD administrative operations during maintenance windows
+  - Group Policy or AD replication tasks
+level: high
+```
+
+Converted Lucene query (sigma-cli 3.1.0, ecs_windows pipeline):
+
+```lucene
+winlog.channel:Security AND (event.code:4662 AND winlog.event_data.ObjectServer:DS AND (winlog.event_data.AccessMask:(*0x20* OR *0x40000*)))
+```
 
 ---
 
