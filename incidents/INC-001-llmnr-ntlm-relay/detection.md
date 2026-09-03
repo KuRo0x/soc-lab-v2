@@ -4,20 +4,21 @@
 
 | Source | What it Catches |
 |--------|-----------------|
-| Suricata (pfSense LAN) | LLMNR/NBT-NS poisoning traffic, anomalous multicast responses |
-| Winlogbeat (Win10 + DC) | EID 4625 (failed relay attempt), EID 4624 LogonType 3 (successful relay) |
-| Winlogbeat (DC) | EID 4776 (NTLM credential validation), EID 4624 unexpected NTLM source |
+| Winlogbeat (DC) | EID 4662 — AD object ACL write (WRITE_DAC + Write Property) triggered by relay |
+| Winlogbeat (DC) | EID 4624 LogonType 3 — network logon from unexpected source |
+| Suricata (pfSense LAN) | LLMNR/NBT-NS/MDNS poisoning traffic — multicast responses from attacker |
 
 ---
 
-## Sigma Rule — NTLM Relay Lateral Movement (Winlogbeat)
+## Sigma Rule — NTLM Relay → LDAP ACL Write (Winlogbeat)
 
 ```yaml
-title: Suspicious NTLM Lateral Movement — Unexpected Source
+title: Suspicious AD Object ACL Write — Possible NTLM Relay via LDAP
 id: b3e1f2a0-1c4d-4e8b-9f7a-2d3c5e6f7890
 status: experimental
-description: Detects NTLM network logon (LogonType 3) originating from an unexpected
-  internal host — indicative of NTLM relay attack (T1557.001)
+description: Detects AD directory service object access with Write Property or WRITE_DAC
+  operations from a domain admin account — indicative of NTLM relay escalation via LDAP
+  (T1557.001). Two EID 4662 events fired 40ms apart during confirmed relay session.
 author: KuRo
 date: 2026-09-03
 tags:
@@ -29,54 +30,63 @@ logsource:
   service: security
 detection:
   selection:
-    EventID: 4624
-    LogonType: 3
-    AuthenticationPackageName: NTLM
-  filter_legitimate:
-    IpAddress|startswith:
-      - '172.16.0.5'   # DC — expected NTLM source
-  condition: selection and not filter_legitimate
+    EventID: 4662
+    ObjectServer: DS
+    AccessMask|contains:
+      - '0x20'
+      - '0x40000'
+  condition: selection
 falsepositives:
-  - Legacy applications using NTLM authentication
-  - Print servers / file shares using NTLM
+  - Legitimate AD administrative operations
+  - Group Policy updates
 level: high
 ```
 
 ---
 
-## KQL Query — Kibana (Winlogbeat)
+## KQL Query — Kibana (Detection Evidence)
 
 ```kql
-event.code: "4624"
-AND winlog.event_data.LogonType: "3"
-AND winlog.event_data.AuthenticationPackageName: "NTLM"
-AND NOT winlog.event_data.IpAddress: "172.16.0.5"
+event.code: "4662"
+AND winlog.event_data.SubjectUserName: "Administrator"
+AND winlog.event_data.ObjectServer: "DS"
+AND _index: "winlogbeat-2026.09.03"
 ```
 
----
-
-## KQL Query — Kibana (Suricata)
-
-```kql
-event.dataset: "suricata.eve"
-AND (suricata.eve.alert.signature: *LLMNR* OR suricata.eve.alert.signature: *NBNS*)
-```
+**Result:** 2 events — records 71400 and 71402 — fired at 11:31:12Z during relay session.
 
 ---
 
 ## What to Look For
 
-- **EID 4624, LogonType 3, NTLM** from a source that is not the DC — relay success
-- **EID 4625, LogonType 3, NTLM** from unexpected source — relay attempt/failure
-- **EID 4776** — NTLM credential validation spike from unexpected workstation
-- **Suricata LLMNR alerts** — multicast poisoning traffic on LAN
-- Responder generates high-volume LLMNR/NBT-NS multicast responses in a short window
+- **EID 4662, ObjectServer: DS** — any write to AD object outside scheduled admin window
+- **AccessMask 0x40000 (WRITE_DAC)** — attacker modifying DACL on domain object
+- **AccessMask 0x20 (Write Property)** — attacker writing replication rights
+- Two 4662 events firing within milliseconds of each other = relay tool signature
+- Correlate with EID 4624 LogonType 3 NTLM from unexpected source IP
+
+---
+
+## Observed Evidence (2026-09-03)
+
+| Record | Event ID | Access | AccessMask | Timestamp (UTC) |
+|--------|----------|--------|------------|----------------|
+| 71400 | 4662 | WRITE_DAC | 0x40000 | 11:31:12.039Z |
+| 71402 | 4662 | Write Property | 0x20 | 11:31:12.079Z |
+
+Both events: `SOC\Administrator` on `SOC-Lab-DC.soc.lab` — index `winlogbeat-2026.09.03`
 
 ---
 
 ## Validation
 
-- [ ] Sigma rule tested against real execution
-- [ ] False positive rate acceptable
+- [x] Sigma rule tested against real execution
+- [x] Events confirmed in Kibana — 2 EID 4662 records
 - [ ] Kibana detection rule created and fired
-- [ ] Suricata alert confirmed in `suricata-*` index
+- [ ] Suricata LLMNR alert confirmed in `suricata-*` index
+
+---
+
+## Evidence Screenshots
+
+- `evidence/kibana-4662-ldap-relay-acl-write.png` — Kibana table view, both 4662 events
