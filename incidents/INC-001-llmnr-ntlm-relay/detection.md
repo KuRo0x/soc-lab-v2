@@ -12,34 +12,12 @@
 
 ## Sigma Rule — NTLM Relay → LDAP ACL Write (Winlogbeat)
 
-```yaml
-title: Suspicious AD Object ACL Write — Possible NTLM Relay via LDAP
-id: b3e1f2a0-1c4d-4e8b-9f7a-2d3c5e6f7890
-status: experimental
-description: Detects AD directory service object access with Write Property or WRITE_DAC
-  operations from a domain admin account — indicative of NTLM relay escalation via LDAP
-  (T1557.001). Two EID 4662 events fired 40ms apart during confirmed relay session.
-author: KuRo
-date: 2026-09-03
-tags:
-  - attack.credential_access
-  - attack.lateral_movement
-  - attack.t1557.001
-logsource:
-  product: windows
-  service: security
-detection:
-  selection:
-    EventID: 4662
-    ObjectServer: DS
-    AccessMask|contains:
-      - '0x20'
-      - '0x40000'
-  condition: selection
-falsepositives:
-  - Legitimate AD administrative operations
-  - Group Policy updates
-level: high
+See `detection/sigma/T1557.001-llmnr-ntlm-relay.yml`
+
+Converted Lucene query (sigma-cli 3.1.0, ecs_windows pipeline):
+
+```lucene
+winlog.channel:Security AND (event.code:4662 AND winlog.event_data.ObjectServer:DS AND (winlog.event_data.AccessMask:(*0x20* OR *0x40000*)))
 ```
 
 ---
@@ -82,7 +60,7 @@ Both events: `SOC\Administrator` on `SOC-Lab-DC.soc.lab` — index `winlogbeat-2
 
 - [x] Sigma rule tested against real execution
 - [x] Events confirmed in Kibana — 2 EID 4662 records
-- [ ] Kibana detection rule created and fired
+- [x] Kibana detection rule created and fired — `NTLM Relay — Suspicious AD Object ACL Write (T1557.001)` — High, Risk 73 — 2 alerts confirmed (2026-09-03)
 - [ ] Suricata LLMNR alert confirmed in `suricata-*` index
 
 ---
