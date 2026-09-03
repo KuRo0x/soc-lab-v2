@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-08-30**  
+> Last updated: **2026-09-03**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -21,7 +21,7 @@
 - [x] **Sysmon (DC):** sysmon-modular v4.90 (Olaf Hartong config) installed
 - [x] **Sysmon (Win10):** sysmon-modular v4.90 config verified — `C:\Windows\sysmonconfig.xml` confirmed
 - [x] **Win10 → ELK:** Winlogbeat running at `C:\Program Files\Winlogbeat\` — confirmed shipping
-- [x] **Confirmed index:** `winlogbeat-2026.08.12`, `winlogbeat-2026.08.20`, `winlogbeat-2026.08.25`, `winlogbeat-2026.08.27` — live data verified in Kibana
+- [x] **Confirmed index:** `winlogbeat-2026.08.12`, `winlogbeat-2026.08.20`, `winlogbeat-2026.08.25`, `winlogbeat-2026.08.27`, `winlogbeat-2026.09.03` — live data verified in Kibana
 - [x] **Ubuntu → ELK:** Filebeat 8.19.17 → Logstash `172.16.0.4:5044`
   - `sudo filebeat test config -e` → **Config OK**
   - `sudo filebeat test output -e` → **parse host ✅ | dns ✅ | dial ✅ | talk to server ✅**
@@ -88,10 +88,9 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
-- [ ] **INC-001 — LLMNR Poisoning + NTLM Relay** — only gap in the incident sequence, scaffold and execute next
 - [ ] **Kibana alerting** — configure email or Slack notifications when detection rules fire
   - Kibana → Stack Management → Rules → select rule → Add action → Email / Slack connector
-  - Do for all 5 active detection rules (INC-002 through INC-005 + any new)
+  - Do for all 5 active detection rules (INC-001 through INC-005 + any new)
   - Proves end-to-end: attack fires → rule triggers → analyst gets notified
 - [ ] **Professional Kibana dashboards** — build and export once complete
   - Suggested panels: top attack sources, MITRE ATT&CK heatmap, event timeline, alert severity breakdown
@@ -121,13 +120,31 @@
 
 | ID | Name | MITRE | Status |
 |----|------|-------|--------|
-| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | 🔲 Next up |
+| INC-001 | LLMNR Poisoning + NTLM Relay | T1557.001 | ✅ Complete (2026-09-03) |
 | INC-002 | AS-REP Roasting | T1558.004 | ✅ Complete (2026-08-12) |
 | INC-003 | Kerberoasting | T1558.003 | ✅ Complete (2026-08-20) |
 | INC-004 | Pass-the-Hash Lateral Movement | T1550.002 | ✅ Complete (2026-08-25) |
 | INC-005 | DCSync Attack | T1003.006 | ✅ Complete (2026-08-27) |
 | INC-006 | Malware Detonation + C2 Beacon | T1071.001 | 🔲 Planned |
 | INC-007 | Phishing → Macro → PowerShell | T1566.001 | 🔲 Planned |
+
+---
+
+## ✅ INC-001 — LLMNR Poisoning + NTLM Relay (Complete — 2026-09-03)
+
+| Check | What Was Done | Result |
+|-------|--------------|--------|
+| LLMNR/NBT-NS confirmed enabled | Win10 — no GPO, TcpipNetbiosOptions=0 | ✅ |
+| LDAP signing check | DC LDAPServerIntegrity=1 (Negotiate) — relayable | ✅ |
+| Responder 3.2.2.0 | LLMNR + MDNS poisoning active on eth0 | ✅ |
+| NTLMv2 hash captured | `SOC\Administrator` hash captured via SMB | ✅ |
+| LDAP relay | ntlmrelayx HTTP → `ldap://172.16.0.5` — SUCCEED | ✅ |
+| Domain ACL escalation | Administrator granted `Replication-Get-Changes-All` | ✅ |
+| Domain dump | `aclpwn-20260903-073113.restore` saved to lootdir | ✅ |
+| ELK detection | 2× EID 4662 — WRITE_DAC + Write Property — records 71400, 71402 — `winlogbeat-2026.09.03` | ✅ |
+| Sigma rule | `detection/sigma/T1557.001-llmnr-ntlm-relay.yml` | 🔲 TODO |
+| Writeup | `incidents/INC-001-llmnr-ntlm-relay/README.md` | 🔲 TODO |
+| Evidence | `kibana-4662-ldap-relay-acl-write.png` | ✅ |
 
 ---
 
@@ -159,10 +176,7 @@
 | Detection index | `winlogbeat-2026.08.20` — record `52849` | ✅ |
 | Sigma rule | `detection/sigma/T1558.003-kerberoasting.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-003-kerberoasting/README.md` | ✅ |
-| detection.md | `incidents/INC-003-kerberoasting/detection.md` | ✅ |
-| timeline.md | `incidents/INC-003-kerberoasting/timeline.md` | ✅ |
-| remediation.md | `incidents/INC-003-kerberoasting/remediation.md` | ✅ |
-| Evidence screenshots | `incidents/INC-003-kerberoasting/evidence/` | ✅ Uploaded (2026-08-28) |
+| Evidence | `incidents/INC-003-kerberoasting/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
@@ -174,16 +188,11 @@
 | NTLM hash generated | `217cac874bc6e41a6fec9b06d2eee7d5` via Python hashlib | ✅ |
 | PtH executed | CME → Win10 (172.16.0.10) — `(Pwn3d!)` | ✅ |
 | RCE confirmed | `whoami` → `soc\administrator`, `hostname` → `SOC-Lab-Endpoint` | ✅ |
-| Net recon | `net user`, `ipconfig /all` — full network config exposed | ✅ |
 | Lateral movement | Subnet scan `172.16.0.0/24` — Win10 AND DC both `(Pwn3d!)` | ✅ |
 | ELK detection | 40× EID 4624, LogonType 3, NTLM, source 172.16.0.11 — `winlogbeat-2026.08.25` | ✅ |
-| Evidence screenshot | 40-event / last 15h Kibana view | ✅ |
 | Sigma rule | `detection/sigma/T1550.002-pass-the-hash.yml` — pushed | ✅ |
 | Writeup | `incidents/INC-004-pass-the-hash/README.md` | ✅ |
-| detection.md | `incidents/INC-004-pass-the-hash/detection.md` | ✅ |
-| timeline.md | `incidents/INC-004-pass-the-hash/timeline.md` | ✅ |
-| remediation.md | `incidents/INC-004-pass-the-hash/remediation.md` | ✅ |
-| Evidence upload | `incidents/INC-004-pass-the-hash/evidence/` | ✅ Uploaded (2026-08-28) |
+| Evidence | `incidents/INC-004-pass-the-hash/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
@@ -192,40 +201,14 @@
 | Check | What Was Done | Result |
 |-------|--------------|--------|
 | Audit policy | `auditpol` — `Directory Service Access: Success and Failure` enabled on DC | ✅ |
-| DCSync rights granted | ADUC → Delegate Control → `svc_asrep` granted `Replicating Directory Changes` + `Replicating Directory Changes All` on `soc.lab/` | ✅ |
-| Attack executed | `impacket-secretsdump soc.lab/svc_asrep@172.16.0.5` — full domain dump via DRSUAPI | ✅ |
-| Hashes captured | `Administrator`, `krbtgt`, `svc_asrep`, `svc_http`, `SOC-LAB-DC$`, `SOC-LAB-ENDPOIN$` | ✅ |
+| DCSync rights granted | ADUC → `svc_asrep` granted replication rights | ✅ |
+| Attack executed | `impacket-secretsdump` — full domain dump via DRSUAPI | ✅ |
 | `krbtgt` hash | `0c0c6f91a7fa8c09826af3a88bf0224e` — Golden Ticket capable | ✅ |
-| ELK detection | 23× EID 4662 from `svc_asrep` on `SOC-Lab-DC` at 14:13:09 — `winlogbeat-2026.08.27` | ✅ |
-| GUIDs confirmed | `1131f6aa` (Replicating Directory Changes) present in all events | ✅ |
-| Sigma rule | `detection/sigma/T1003.006-dcsync.yml` — pushed & validated via sigma-cli | ✅ |
-| Kibana detection rule | `DCSync Attack — Non-DC Account Requesting AD Replication` — Critical, Risk 99, live & succeeded | ✅ |
+| ELK detection | 23× EID 4662 from `svc_asrep` — `winlogbeat-2026.08.27` | ✅ |
+| Kibana detection rule | `DCSync Attack` — Critical, Risk 99, live & succeeded | ✅ |
+| Sigma rule | `detection/sigma/T1003.006-dcsync.yml` — pushed & validated | ✅ |
 | Writeup | `incidents/INC-005-dcsync/README.md` | ✅ |
-| detection.md | `incidents/INC-005-dcsync/detection.md` | ✅ |
-| timeline.md | `incidents/INC-005-dcsync/timeline.md` | ✅ |
-| remediation.md | `incidents/INC-005-dcsync/remediation.md` | ✅ |
-| Evidence upload | `incidents/INC-005-dcsync/evidence/` | ✅ Uploaded (2026-08-28) |
-
----
-
-## 🔲 INC-001 — LLMNR Poisoning + NTLM Relay (Next)
-
-**Why this matters:**
-- LLMNR/NBT-NS poisoning is one of the most common initial credential theft vectors in real environments
-- Demonstrates network-layer attack detection (Responder + ntlmrelayx) — different from the AD/Kerberos focus of INC-002 through INC-005
-- Requires Suricata + Winlogbeat correlation for full detection coverage
-
-**Pre-requisites:**
-- [x] Suricata deployed on pfSense ✅
-- [x] Winlogbeat shipping from Win10 + DC ✅
-- [ ] Responder installed on Kali
-- [ ] ntlmrelayx ready
-
-**Attack plan:**
-- Run Responder on Kali LAN interface → capture NTLMv2 hashes from victim
-- Optionally relay with ntlmrelayx → RCE on target
-- Detect: Suricata LLMNR alerts + EID 4625/4624 NTLM events in Winlogbeat
-- MITRE: T1557.001 — Adversary-in-the-Middle: LLMNR/NBT-NS Poisoning
+| Evidence | `incidents/INC-005-dcsync/evidence/` | ✅ Uploaded (2026-08-28) |
 
 ---
 
