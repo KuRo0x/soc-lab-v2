@@ -5,6 +5,45 @@ Format: `[YYYY-MM-DD] — What changed and why`
 
 ---
 
+## [2026-09-09] — Suricata log shipping investigation + pipeline verified
+
+### Problem
+- Suricata EVE logs were not confirmed shipping to ELK — root cause investigation performed
+
+### Investigation Steps
+1. Connected to pfSense via SSH → shell (option 8)
+2. Confirmed Suricata process running: `ps aux | grep suricata` → PID 36150, interface `em1`
+3. Confirmed `eve.json` NOT at `/var/log/suricata/eve.json` (wrong path assumption)
+4. Used `procstat -f 36150` to find real open file descriptors → actual path:
+   - `/var/log/suricata/suricata_em118050/eve.json` (10.8MB, actively written)
+   - `/var/log/suricata/suricata_em118050/alerts.log`
+   - `/var/log/suricata/suricata_em118050/http.log`
+5. Confirmed `eve-log: enabled: yes` in `/usr/local/etc/suricata/suricata.yaml`
+6. Confirmed Filebeat is NOT installed on pfSense (FreeBSD — not compatible)
+7. Confirmed pfSense remote syslog already configured: `172.16.0.4:5140` (Everything + General Auth Events)
+8. Confirmed `syslogd` sending via `sockstat`: `172.16.0.1:514 → 172.16.0.4:5140` (2 active UDP sockets)
+9. `tcpdump -i any` showed 0 packets — misleading due to promiscuous mode limitation on `any` device
+10. `tcpdump -i ens33` confirmed packets arriving: `172.16.0.1 → 172.16.0.4:5140 UDP` ✅
+11. Checked Elasticsearch indices — confirmed data landing:
+    - `pfsense-firewall-2026.09.09` — 4 docs ✅
+    - `suricata-eve-2026.08.31` — 1,078 docs ✅
+    - `suricata-eve-2026.09.01` — 22 docs ✅
+
+### Resolution
+- Pipeline was already functional end-to-end
+- Suricata EVE logs ship via pfSense syslogd → Logstash port 5140 → `suricata-eve-*` index
+- Architecture: `pfSense (Suricata) → syslogd UDP → Logstash 5140 → Elasticsearch`
+- Real log path documented: `/var/log/suricata/suricata_em118050/eve.json`
+
+### Bonus Finding — Winlogbeat Date Parsing Errors (400)
+- Logstash logs flooded with `HTTP 400 document_parsing_exception` from `winlogbeat-*`
+- Fields like `winlog.event_data.PreviousTime`, `DeviceTime`, `StartTime`, `StopTime` arriving in Windows format:
+  `2026-09-04 08:13:46.8896675 +0000 UTC` — not ISO 8601
+- Elasticsearch rejects these as unparseable dates
+- Fix pending: add `mutate { convert }` filter to cast these fields to `string` in Logstash pipeline
+
+---
+
 ## [2026-08-30] — README overhaul
 - Added badges (License, Status, MITRE ATT&CK, ELK 8.x, VMware)
 - Centered title and badge block for symmetric layout
