@@ -97,7 +97,7 @@
   - Export via Stack Management → Saved Objects → `.ndjson` → commit to `detection/kibana/`
 
 ### 🟡 Medium Priority
-- [ ] **Kibana detection rules export** — deferred until more rules built; export all to `detection/kibana/`
+- [ ] **Kibana detection rules export** — export the remaining verified rules to `detection/kibana/`; the Pass-the-Hash export is already committed
 
 ### 🟢 Low Priority
 - [ ] **FLARE-VM tool inventory** — document in `infrastructure/flare-vm.md`
@@ -142,8 +142,8 @@
 | Domain ACL escalation | Administrator granted `Replication-Get-Changes-All` | ✅ |
 | Domain dump | `aclpwn-20260903-073113.restore` saved to lootdir | ✅ |
 | ELK detection | 2× EID 4662 — WRITE_DAC + Write Property — records 71400, 71402 — `winlogbeat-2026.09.03` | ✅ |
-| Sigma rule | `detection/sigma/T1557.001-llmnr-ntlm-relay.yml` | 🔲 TODO |
-| Writeup | `incidents/INC-001-llmnr-ntlm-relay/README.md` | 🔲 TODO |
+| Sigma rule | `detection/sigma/T1557.001-llmnr-ntlm-relay.yml` | ✅ Validated |
+| Writeup | `incidents/INC-001-llmnr-ntlm-relay/README.md` | ✅ Complete |
 | Evidence | `kibana-4662-ldap-relay-acl-write.png` | ✅ |
 
 ---

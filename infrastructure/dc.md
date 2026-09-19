@@ -13,7 +13,7 @@
 - [x] Winlogbeat — installed at `C:\winlogbeat\` (non-default path), shipping to ELK
 - [x] Winlogbeat ships: Security, Sysmon, PowerShell, System, ForwardedEvents
 - [x] Audit policy — verified 2026-08-16 (see below)
-- [ ] AD Users/OUs documented — TODO
+- [x] AD Users/OUs documented — see [`docs/ad-structure.md`](../docs/ad-structure.md)
 - [ ] GPO configuration documented — TODO
 
 ## AD Structure
@@ -27,7 +27,7 @@ Domain: soc.lab
 │   ├── SOC-Lab-DC
 │   └── SOC-Lab-Endpoint (172.16.0.10, domain-joined)
 └── Groups/
-    └── [TODO: document groups]
+    └── See [`docs/ad-structure.md`](../docs/ad-structure.md) for groups and memberships
 ```
 
 ## Winlogbeat

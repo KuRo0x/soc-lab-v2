@@ -19,3 +19,11 @@
 - Use a password manager for all lab credentials
 - Do not reuse lab passwords outside the lab
 - Rotate credentials after each major scenario
+
+
+
+
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows

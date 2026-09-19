@@ -17,6 +17,10 @@ detection/
 
 | File | Technique | Tested Against Real Event |
 |------|-----------|---------------------------|
+| [`T1003.006-dcsync.yml`](./sigma/T1003.006-dcsync.yml) | DCSync | ✅ Yes — Event 4662 confirmed |
+| [`T1550.002-pass-the-hash.yml`](./sigma/T1550.002-pass-the-hash.yml) | Pass-the-Hash | ✅ Yes — Event 4624 confirmed |
+| [`T1557.001-llmnr-ntlm-relay.yml`](./sigma/T1557.001-llmnr-ntlm-relay.yml) | LLMNR/NTLM Relay | ✅ Yes — Event 4662 confirmed |
+| [`T1558.003-kerberoasting.yml`](./sigma/T1558.003-kerberoasting.yml) | Kerberoasting | ✅ Yes — Event 4769, `0x17` confirmed |
 | [`T1558.004-asrep-roasting.yml`](./sigma/T1558.004-asrep-roasting.yml) | AS-REP Roasting | ✅ Yes — Event 4768, `0x17`, `PreAuthType: 0` confirmed |
 
 ## Naming Convention

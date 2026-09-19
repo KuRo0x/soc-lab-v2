@@ -1,0 +1,33 @@
+title: INC-006 Lab C2 Simulator HTTP Beacon
+id: 6c1f4e4a-9c92-4ae1-9e7e-006c2c2f0001
+status: experimental
+description: |
+  Lab-scoped rule for the INC-006 benign HTTP C2 simulator. Detects a
+  PowerShell process making an outbound Sysmon network connection to the
+  approved Kali simulator address. This rule is not a production malware rule.
+author: KuRo
+date: 2026-09-19
+references:
+  - https://attack.mitre.org/techniques/T1071/001/
+tags:
+  - attack.command_and_control
+  - attack.t1071.001
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 3
+    Image|endswith: '\\powershell.exe'
+    DestinationIp: '172.16.0.11'
+    DestinationPort: 8080
+  condition: selection
+falsepositives:
+  - Approved INC-006 lab validation only
+level: high
+fields:
+  - EventID
+  - Image
+  - DestinationIp
+  - DestinationPort
+  - User

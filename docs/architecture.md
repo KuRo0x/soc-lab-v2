@@ -6,8 +6,8 @@
 |----------|----|------|----|----------|
 | pfSense | 172.16.0.1 | Firewall / Gateway | pfSense CE | — |
 | ELK | 172.16.0.4 | SIEM | Ubuntu 22.04 | — |
-| DC01 | 172.16.0.5 | Domain Controller | Windows Server 2019 | Sysmon + Winlogbeat |
-| Win10 | 172.16.0.10 | Victim (Windows) | Windows 10 | Sysmon + Winlogbeat (TODO: verify) |
+| SOC-Lab-DC | 172.16.0.5 | Domain Controller | Windows Server 2022 | Sysmon + Winlogbeat |
+| Win10 | 172.16.0.10 | Victim (Windows) | Windows 10 | Sysmon + Winlogbeat (verified) |
 | Kali | 172.16.0.11 | Attacker | Kali Linux Rolling | — |
 | Ubuntu Victim | 172.16.0.20 | Victim (Linux) | Ubuntu 22.04 | Filebeat |
 | FLARE-VM | 172.16.0.30 | Malware Analysis | Windows 10 + FLARE | None (isolated by design) |
@@ -24,7 +24,7 @@
 | BLOCK-FLARE-VM-OUTBOUND | 172.16.0.30 | any | Block |
 | Default LAN | LAN net | any | Allow |
 
-> TODO: Export full ruleset from pfSense (Diagnostics > Backup) and paste here.
+> The redacted pfSense export is maintained in [`configs/network/pfsense-backup.xml`](../configs/network/pfsense-backup.xml).
 
 ## Data Flow
 
@@ -39,8 +39,9 @@
 
 | Index Pattern | Source | Status |
 |---------------|--------|--------|
-| `winlogbeat-*` | DC, Win10 | DC verified; Win10 TODO |
-| `filebeat-*` | Ubuntu Victim | Running; output destination TBC |
+| `winlogbeat-*` | DC, Win10 | Live and verified |
+| `filebeat-*` | Ubuntu Victim | Live via Logstash `172.16.0.4:5044` |
+| `suricata-*` | pfSense | Live via EVE JSON and Logstash `172.16.0.4:5045` |
 
 ## Folder Convention — incidents/ vs threat-scenarios/
 
@@ -48,5 +49,5 @@
 
 ## Future Improvements
 - [ ] VLAN segmentation (management / lab / attacker / malware)
-- [ ] Suricata on pfSense (network IDS)
+- [x] Suricata on pfSense (network IDS)
 - [ ] Dedicated out-of-band management network
