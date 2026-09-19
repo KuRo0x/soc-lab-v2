@@ -1,6 +1,6 @@
 # 📊 Lab Status — Single Source of Truth
 
-> Last updated: **2026-09-03**  
+> Last updated: **2026-09-09**  
 > Open this file when you return to the lab. It tells you exactly where you left off.
 
 ---
@@ -28,24 +28,26 @@
   - ⚠️ TLS disabled on Filebeat → Logstash (plain text — acceptable for isolated lab)
 - [x] **FLARE-VM:** No telemetry — intentional
 
-### Suricata → ELK (Complete — 2026-08-26)
-- [x] **Suricata 7.0.9** installed on pfSense 2.8.1
-- [x] Hardware offloading disabled, pfSense rebooted
-- [x] LAN (em1) interface configured — EVE JSON logging enabled (DNS, HTTP, Kerberos, SMB, TLS, SSH, JA3/JA3S)
-- [x] Rulesets downloaded: ETOpen, Snort GPLv2, Feodo Tracker, ABUSE.ch SSL Blacklist (12h auto-update)
-- [x] Suricata running on LAN — green status, IDS-only mode
-- [x] EVE Output Type set to `SYSLOG` — forwarding to `172.16.0.4:5140`
-- [x] `suricata-eve-2026.08.23` index confirmed in Elasticsearch ✅
-- [x] Pipeline `03-suricata-eve.conf` running on port `5045` ✅
-- [x] Config documented in `configs/network/suricata-pfsense.md` ✅
-- [x] **Issue #1 closed** ✅
+### Suricata → ELK (Verified — 2026-09-09)
+- [x] **Suricata 7.0.9** running on pfSense 2.8.1, PID 36150, interface `em1`
+- [x] **Real log path:** `/var/log/suricata/suricata_em118050/eve.json` (10.8MB active)
+- [x] **eve-log:** `enabled: yes` confirmed in `/usr/local/etc/suricata/suricata.yaml`
+- [x] **Shipping method:** pfSense `syslogd` → UDP → `172.16.0.4:5140` (2 active sockets confirmed via `sockstat`)
+- [x] **Packets verified arriving** on ELK VM via `tcpdump -i ens33 udp port 5140`
+- [x] **Logstash listening** on UDP+TCP 5140 (java/PID 1285)
+- [x] **Elasticsearch indices confirmed:**
+  - `suricata-eve-2026.08.31` — 1,078 docs ✅
+  - `suricata-eve-2026.09.01` — 22 docs ✅
+  - `pfsense-firewall-2026.09.09` — 4 docs (live today) ✅
+- [x] **Architecture:** `pfSense (Suricata) → syslogd UDP → Logstash :5140 → Elasticsearch`
+- [x] Filebeat NOT installed on pfSense (FreeBSD — incompatible) — syslog relay is correct approach
 
 ### All Logstash Pipelines Green
 | Pipeline | Port | Status |
 |---|---|---|
 | `beats.conf` | 5044 | ✅ Winlogbeat + Filebeat |
-| `02-pfsense-syslog.conf` | 5140 | ✅ pfSense system + Suricata syslog |
-| `03-suricata-eve.conf` | 5045 | ✅ Suricata EVE JSON |
+| `pfsense-input.conf` | 5140 | ✅ pfSense system + Suricata syslog |
+| `03-suricata-eve.conf` | 5045 | ✅ Suricata EVE JSON (direct TCP) |
 
 ### Winlogbeat 9.x Fix (2026-08-26)
 - [x] Fixed `winlog.event_data.ProcessCreationTime` HTTP 400 indexing error — `remove_field` mutate in `beats.conf`
@@ -88,10 +90,13 @@
 ## ❌ Missing / TODO
 
 ### 🔴 High Priority
+- [ ] **Fix Winlogbeat date parsing errors** — Logstash flooded with HTTP 400 on `winlog.event_data.*Time` fields
+  - Fields like `PreviousTime`, `DeviceTime`, `StartTime`, `StopTime` arrive as Windows format string, not ISO 8601
+  - Fix: add `mutate { convert }` to cast these fields to `string` in Logstash `beats.conf` pipeline
+  - Discovered: 2026-09-09
 - [ ] **Kibana alerting** — configure email or Slack notifications when detection rules fire
   - Kibana → Stack Management → Rules → select rule → Add action → Email / Slack connector
   - Do for all 5 active detection rules (INC-001 through INC-005 + any new)
-  - Proves end-to-end: attack fires → rule triggers → analyst gets notified
 - [ ] **Professional Kibana dashboards** — build and export once complete
   - Suggested panels: top attack sources, MITRE ATT&CK heatmap, event timeline, alert severity breakdown
   - Export via Stack Management → Saved Objects → `.ndjson` → commit to `detection/kibana/`
@@ -111,6 +116,7 @@
 
 | Item | Question | Action |
 |------|----------|--------|
+| Winlogbeat date parse errors | `winlog.event_data.*Time` fields fail ISO 8601 parse — HTTP 400 on index | Add `mutate convert` to string in beats.conf |
 | Win10 Winlogbeat index | Is Win10 data landing in its own index? | Check Kibana index management |
 | Suricata syslog truncation | FreeBSD syslog truncates at 480 bytes — long EVE JSON events may arrive broken | Monitor `suricata-*` index for parse failures; consider syslog-ng or log forwarder VM as long-term fix |
 
